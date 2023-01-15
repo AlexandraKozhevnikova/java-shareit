@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,8 @@ import ru.practicum.shareit.user.dto.UserMapper;
 
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
@@ -40,5 +43,12 @@ public class UserController {
         updateProperty.setId(userId);
         User updatedUser = service.updateUser(updateProperty);
         return mapper.userToDto(updatedUser);
+    }
+
+    @GetMapping
+    public List<UserDto> getAllUsers(){
+        return  service.getAllUsers().stream()
+                .map(mapper::userToDto)
+                .collect(Collectors.toList());
     }
 }

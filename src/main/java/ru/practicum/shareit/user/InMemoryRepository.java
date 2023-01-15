@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Repository
@@ -65,6 +68,11 @@ public class InMemoryRepository implements UserRepository {
         users.put(newUser.getId(), newUser);
 
         return newUser;
+    }
+
+    @Override
+    public List<User> getAllUsers(){
+        return new ArrayList<>(users.values());
     }
 
     private int getNexId() {
