@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 
 @Repository
 public class InMemoryRepository implements UserRepository {
@@ -29,6 +30,41 @@ public class InMemoryRepository implements UserRepository {
             throw new DuplicateKeyException("Добавление пользователя с  email '" + user.getEmail() +
                     "' невозможно. Попробуйте другой email");
         }
+    }
+
+    @Override
+    public User updateUser(User updateProperty) {
+        if (!users.containsKey(updateProperty.getId())) {
+            throw new NoSuchElementException("Пользователя с 'id' = " + updateProperty.getId() + " не существует");
+        }
+
+        User oldUser = users.get(updateProperty.getId());
+
+        User newUser = new User();
+        newUser.setId(updateProperty.getId());
+
+        if (updateProperty.getEmail() != null && !updateProperty.getEmail().equals(oldUser.getEmail())) {
+            newUser.setEmail(updateProperty.getEmail());
+
+            if(emails.add(updateProperty.getEmail())){
+                emails.remove(oldUser.getEmail());
+            } else {
+                throw new DuplicateKeyException("Обновление пользователя с  id = '" + updateProperty.getId() +
+                        " неуспешно. Попробуйте другой email");
+            }
+        } else {
+            newUser.setEmail(oldUser.getEmail());
+        }
+
+        if (updateProperty.getName() != null && !updateProperty.getName().equals(oldUser.getName())) {
+            newUser.setName((updateProperty.getName()));
+        } else {
+            newUser.setName(oldUser.getName());
+        }
+
+        users.put(newUser.getId(), newUser);
+
+        return newUser;
     }
 
     private int getNexId() {

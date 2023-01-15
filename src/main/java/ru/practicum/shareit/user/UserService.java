@@ -16,4 +16,9 @@ public class UserService {
     public User createUser(User user) {
         return userRepository.createUser(user);
     }
+
+    public User updateUser(User updateProperty) {
+        return userRepository.updateUser(updateProperty);
+    }
 }
+
