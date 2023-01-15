@@ -6,15 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -77,6 +75,22 @@ public class ExceptionApiHandler {
                         ).build()
                 );
     }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .message(exception.getLocalizedMessage())
+                        .error(ApiError.builder()
+                                .type("validation")
+                                .description("request parameter is missing")
+                                .build()
+                        ).build()
+                );
+    }
+
     @ExceptionHandler(DuplicateKeyException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateKeyException(DuplicateKeyException exception) {
         return ResponseEntity
@@ -90,6 +104,7 @@ public class ExceptionApiHandler {
                         ).build()
                 );
     }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException exception) {
         return ResponseEntity

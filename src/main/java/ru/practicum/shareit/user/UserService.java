@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class UserService {
         return user.orElseThrow(() -> new NoSuchElementException("Пользователя с 'id' = " + id + " не существует"));
     }
 
-    public void deleteUser(int id){
+    public void deleteUser(int id) {
         userRepository.deleteUser(id);
     }
 }

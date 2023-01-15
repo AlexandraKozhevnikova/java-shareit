@@ -2,7 +2,7 @@ package ru.practicum.shareit.item;
 
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface ItemRepository {
 
@@ -10,9 +10,9 @@ public interface ItemRepository {
 
     Item updateItem(Item item);
 
-    Collection<Item> getOwnersItems(int ownerId);
+    List<Item> getOwnersItems(int ownerId);
 
     Item getItem(int id);
 
-    Collection<Item> searchItem(String text);
+    List<Item> searchItem(String text);
 }

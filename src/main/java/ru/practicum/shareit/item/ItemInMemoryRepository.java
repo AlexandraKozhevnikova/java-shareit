@@ -3,9 +3,10 @@ package ru.practicum.shareit.item;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class ItemInMemoryRepository implements ItemRepository {
@@ -27,8 +28,10 @@ public class ItemInMemoryRepository implements ItemRepository {
     }
 
     @Override
-    public Collection<Item> getOwnersItems(int ownerId) {
-        return null;
+    public List<Item> getOwnersItems(int ownerId) {
+        return items.values().stream()
+                .filter(it -> it.getOwnerId().equals(ownerId))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -37,8 +40,12 @@ public class ItemInMemoryRepository implements ItemRepository {
     }
 
     @Override
-    public Collection<Item> searchItem(String text) {
-        return null;
+    public List<Item> searchItem(String text) {
+        return items.values().stream()
+                .filter(it -> it.getIsAvailable().equals(true))
+                .filter(it -> it.getDescription().toLowerCase().contains(text.toLowerCase())
+                        || it.getTitle().toLowerCase().contains(text.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     private int getNextId() {

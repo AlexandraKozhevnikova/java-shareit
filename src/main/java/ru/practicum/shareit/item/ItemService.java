@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -45,9 +47,22 @@ public class ItemService {
         return itemFromRep;
     }
 
+    public List<Item> getOwnersItems(int userId) {
+        userService.getUserById(userId);
+        return itemRepository.getOwnersItems(userId);
+    }
+
+    public List<Item> searchItem(String text) {
+        if (text.equals("")) {
+            return Collections.EMPTY_LIST;
+        } else {
+            return itemRepository.searchItem(text);
+        }
+    }
+
     private Item checkItemBelongUser(Item unverifiedItem) {
         Item itemFromRep = checkItemIsExistInRep(unverifiedItem);
-        if (itemFromRep.getOwnerId() != unverifiedItem.getOwnerId()) {
+        if (!itemFromRep.getOwnerId().equals(unverifiedItem.getOwnerId())) {
             throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwnerId() +
                     "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
         }
