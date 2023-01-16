@@ -13,13 +13,13 @@ import java.util.NoSuchElementException;
 
 @Repository
 @Slf4j
-public class InMemoryRepository implements UserRepository {
+public class UserInMemoryRepository implements UserRepository {
     private HashMap<Integer, User> users = new HashMap<>();
     private HashSet<String> emails = new HashSet<>();
     private static int counterId;
 
     @Autowired
-    public InMemoryRepository() {
+    public UserInMemoryRepository() {
     }
 
     @Override

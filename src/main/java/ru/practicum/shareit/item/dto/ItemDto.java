@@ -1,7 +1,20 @@
 package ru.practicum.shareit.item.dto;
 
-/**
- * TODO Sprint add-controllers.
- */
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+@Data
 public class ItemDto {
+    private Integer id;
+    @NotBlank(message = "'name' must not be blank")
+    private String name;
+    @NotBlank(message = "'description' must not be blank")
+    private String description;
+    @NotNull(message = "'available' must not be blank")
+    @JsonProperty("available")
+    private Boolean isAvailable;
 }
