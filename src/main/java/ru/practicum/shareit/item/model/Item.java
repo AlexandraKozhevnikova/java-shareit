@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class Item {
-    private int id;
+    private Integer id;
     private String title;
     private String description;
     private int ownerId;
-    private boolean isAvailable = true;
+    private Boolean isAvailable;
 }

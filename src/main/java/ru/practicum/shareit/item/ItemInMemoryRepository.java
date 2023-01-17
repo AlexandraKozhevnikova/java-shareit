@@ -22,7 +22,8 @@ public class ItemInMemoryRepository implements ItemRepository {
 
     @Override
     public Item updateItem(Item item) {
-        return null;
+        items.put(item.getId(), item);
+        return items.get(item.getId());
     }
 
     @Override
@@ -32,7 +33,7 @@ public class ItemInMemoryRepository implements ItemRepository {
 
     @Override
     public Item getItem(int id) {
-        return null;
+        return items.get(id);
     }
 
     @Override

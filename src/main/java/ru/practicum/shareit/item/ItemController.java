@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -22,13 +24,22 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto createItem(@Valid @RequestBody ItemDto itemDto,
-                              @RequestHeader("X-Sharer-User-Id") int id
-    ) {
+    public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") int id,
+                              @Valid @RequestBody ItemDto itemDto) {
         Item item = itemMapper.dtoToItem(itemDto);
         item.setOwnerId(id);
         Item createdItem = itemService.createItem(item);
         return itemMapper.itemToDto(createdItem);
     }
 
+    @PatchMapping("/{itemId}")
+    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") int userId,
+                              @PathVariable int itemId,
+                              @RequestBody ItemDto itemDto) {
+        Item updatedData = itemMapper.dtoToItem(itemDto);
+        updatedData.setId(itemId);
+        updatedData.setOwnerId(userId);
+        Item updatedItem = itemService.updateItem(updatedData);
+        return itemMapper.itemToDto(updatedItem);
+    }
 }
