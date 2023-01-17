@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,5 +42,12 @@ public class ItemController {
         updatedData.setOwnerId(userId);
         Item updatedItem = itemService.updateItem(updatedData);
         return itemMapper.itemToDto(updatedItem);
+    }
+
+    @GetMapping("/{itemId}")
+    public ItemDto getItem(@RequestHeader("X-Sharer-User-Id") int userId,
+                           @PathVariable int itemId){
+       Item item =  itemService.getItem(itemId);
+       return itemMapper.itemToDto(item);
     }
 }
