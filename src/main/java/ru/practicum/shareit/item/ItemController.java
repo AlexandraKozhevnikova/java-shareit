@@ -54,7 +54,7 @@ public class ItemController {
         return itemMapper.itemToDto(item);
     }
 
-    @GetMapping()
+    @GetMapping
     public List<ItemDto> getOwnersItems(@RequestHeader("X-Sharer-User-Id") int userId) {
         return itemService.getOwnersItems(userId).stream()
                 .map(itemMapper::itemToDto)

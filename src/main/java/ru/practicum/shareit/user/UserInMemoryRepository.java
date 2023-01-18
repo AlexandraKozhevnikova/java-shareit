@@ -9,13 +9,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Repository
 @Slf4j
 public class UserInMemoryRepository implements UserRepository {
-    private HashMap<Integer, User> users = new HashMap<>();
-    private HashSet<String> emails = new HashSet<>();
+    private Map<Integer, User> users = new HashMap<>();
+    private Set<String> emails = new HashSet<>();
     private static int counterId;
 
     @Autowired
@@ -24,16 +26,16 @@ public class UserInMemoryRepository implements UserRepository {
 
     @Override
     public User createUser(User user) {
-        if (!emails.contains(user.getEmail())) {
-            int id = getNexId();
-            user.setId(id);
-            users.put(user.getId(), user);
-            emails.add(user.getEmail());
-            return users.get(id);
-        } else {
+        if (emails.contains(user.getEmail())) {
             throw new DuplicateKeyException("Добавление пользователя с  email '" + user.getEmail() +
                     "' невозможно. Попробуйте другой email");
         }
+
+        int id = getNexId();
+        user.setId(id);
+        users.put(user.getId(), user);
+        emails.add(user.getEmail());
+        return users.get(id);
     }
 
     @Override

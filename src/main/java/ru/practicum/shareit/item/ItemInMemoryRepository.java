@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
@@ -42,9 +44,9 @@ public class ItemInMemoryRepository implements ItemRepository {
     @Override
     public List<Item> searchItem(String text) {
         return items.values().stream()
-                .filter(it -> it.getIsAvailable().equals(true))
-                .filter(it -> it.getDescription().toLowerCase().contains(text.toLowerCase())
-                        || it.getTitle().toLowerCase().contains(text.toLowerCase()))
+                .filter(it -> BooleanUtils.isTrue(it.getIsAvailable()))
+                .filter(it -> StringUtils.containsIgnoreCase(it.getDescription(), text)
+                        || StringUtils.containsIgnoreCase(it.getTitle(), text))
                 .collect(Collectors.toList());
     }
 

@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ApiError {
-    String type;
-    String description;
+    private String type;
+    private String description;
 }

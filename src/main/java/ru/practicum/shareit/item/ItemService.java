@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
@@ -53,11 +54,7 @@ public class ItemService {
     }
 
     public List<Item> searchItem(String text) {
-        if (text.equals("")) {
-            return Collections.EMPTY_LIST;
-        } else {
-            return itemRepository.searchItem(text);
-        }
+        return StringUtils.isBlank(text) ? Collections.EMPTY_LIST : itemRepository.searchItem(text);
     }
 
     private Item checkItemBelongUser(Item unverifiedItem) {

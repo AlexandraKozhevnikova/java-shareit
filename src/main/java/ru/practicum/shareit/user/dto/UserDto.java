@@ -13,10 +13,10 @@ import javax.validation.constraints.Null;
 @Setter
 public class UserDto {
     @Null
-    Integer id;
+    private Integer id;
     @NotBlank(message = "'name' must not be blank", groups = CreateUser.class)
-    String name;
+    private String name;
     @Email
     @NotNull(message = "'email' must not be nul", groups = CreateUser.class)
-    String email;
+    private String email;
 }
