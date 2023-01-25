@@ -10,4 +10,8 @@ class ShareItTests {
 	void contextLoads() {
 	}
 
+
+
+	//todo проверить что при удалении пользователя удаляются все его вещи
+
 }
