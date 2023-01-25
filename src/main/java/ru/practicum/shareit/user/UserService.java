@@ -17,24 +17,34 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        return userRepository.createUser(user);
+        return userRepository.save(user);
     }
 
     public User updateUser(User updateProperty) {
-        return userRepository.updateUser(updateProperty);
+        User savedUser = getUserById(updateProperty.getId());
+
+        if (updateProperty.getEmail() != null && !updateProperty.getEmail().equals(savedUser.getEmail())) {
+            savedUser.setEmail(updateProperty.getEmail());
+        }
+
+        if (updateProperty.getName() != null && !updateProperty.getName().equals(savedUser.getName())) {
+            savedUser.setName((updateProperty.getName()));
+        }
+
+        return userRepository.save(savedUser);
     }
 
     public List<User> getAllUsers() {
-        return userRepository.getAllUsers();
+        return userRepository.findAll();
     }
 
-    public User getUserById(int id) {
-        Optional<User> user = Optional.ofNullable(userRepository.getUserById(id));
+    public User getUserById(long id) {
+        Optional<User> user = userRepository.findById(id);
         return user.orElseThrow(() -> new NoSuchElementException("Пользователя с 'id' = " + id + " не существует"));
     }
 
-    public void deleteUser(int id) {
-        userRepository.deleteUser(id);
+    public void deleteUser(long id) {
+        userRepository.deleteById(id);
     }
 }
 
