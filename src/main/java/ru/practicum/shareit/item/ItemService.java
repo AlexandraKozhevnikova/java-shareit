@@ -1,14 +1,19 @@
 package ru.practicum.shareit.item;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.QItem;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -17,56 +22,67 @@ public class ItemService {
     private ItemRepository itemRepository;
     private UserService userService;
 
-    public Item createItem(Item item) {
-        userService.getUserById(item.getOwnerId());
-        return itemRepository.createItem(item);
+    public Item createItem(Item item, long ownerId) {
+        User owner = userService.getUserById(ownerId);
+        item.setOwner(owner);
+        return itemRepository.save(item);
     }
 
-    public Item updateItem(Item updatedData) {
+    public Item updateItem(Item updatedData, long userId) {
+        User user = userService.getUserById(userId);
+        updatedData.setOwner(user);
+
         Item itemFromRep = checkItemBelongUser(updatedData);
-        Item newItem = itemFromRep;
 
         if (updatedData.getTitle() != null && !updatedData.getTitle().equals(itemFromRep.getTitle())) {
-            newItem.setTitle(updatedData.getTitle());
+            itemFromRep.setTitle(updatedData.getTitle());
         }
         if (updatedData.getDescription() != null && !updatedData.getDescription().equals(itemFromRep.getDescription())) {
-            newItem.setDescription(updatedData.getDescription());
+            itemFromRep.setDescription(updatedData.getDescription());
         }
         if (updatedData.getIsAvailable() != null
                 && !updatedData.getIsAvailable().equals(itemFromRep.getIsAvailable())) {
-            newItem.setIsAvailable(updatedData.getIsAvailable());
+            itemFromRep.setIsAvailable(updatedData.getIsAvailable());
         }
 
-        return itemRepository.updateItem(newItem);
+        return itemRepository.save(itemFromRep);
     }
 
-    public Item getItem(int id) {
-        Item itemFromRep = itemRepository.getItem(id);
-        if (itemFromRep == null) {
-            throw new NoSuchElementException("Вещь с id =  " + id + "  не найдена.");
-        }
-        return itemFromRep;
+    public Item getItemWithUserAccess(long itemId, long userId) {
+        userService.getUserById(userId);
+        return checkItemIsExistInRep(itemId);
     }
 
     public List<Item> getOwnersItems(int userId) {
         userService.getUserById(userId);
-        return itemRepository.getOwnersItems(userId);
+        return itemRepository.findAllByOwnerIdOrderById(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Item> searchItem(String text) {
-        return StringUtils.isBlank(text) ? Collections.EMPTY_LIST : itemRepository.searchItem(text);
+        BooleanExpression isAvailable = QItem.item.isAvailable.isTrue();
+        BooleanExpression titleContains = QItem.item.title.containsIgnoreCase(text);
+        BooleanExpression descriptionContains = QItem.item.description.containsIgnoreCase(text);
+
+        return StringUtils.isBlank(text) ? Collections.EMPTY_LIST
+                : (List<Item>) itemRepository
+                .findAll(isAvailable
+                        .andAnyOf(descriptionContains, titleContains)
+                );
     }
 
     private Item checkItemBelongUser(Item unverifiedItem) {
-        Item itemFromRep = checkItemIsExistInRep(unverifiedItem);
-        if (!itemFromRep.getOwnerId().equals(unverifiedItem.getOwnerId())) {
-            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwnerId() +
+        Item itemFromRep = checkItemIsExistInRep(unverifiedItem.getId());
+        if (!itemFromRep.getOwner().getId().equals(unverifiedItem.getOwner().getId())) {
+            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() +
                     "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
         }
         return itemFromRep;
     }
 
-    private Item checkItemIsExistInRep(Item unverifiedItem) {
-        return getItem(unverifiedItem.getId());
+    private Item checkItemIsExistInRep(long id) {
+        Optional<Item> item = itemRepository.findById(id);
+        return item.orElseThrow(() -> new NoSuchElementException("Вещь с 'id' = " + id
+                + " не существует"));
     }
 }

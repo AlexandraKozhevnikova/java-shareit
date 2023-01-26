@@ -1,20 +1,26 @@
 package ru.practicum.shareit.user;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.Hibernate;
+import ru.practicum.shareit.item.model.Item;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
-@Getter @Setter @ToString
+@Getter
+@Setter
 @Entity
 @Table(name = "user_share_it")
 public class User {
@@ -22,10 +28,13 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "name", nullable = false)
+    @Column(name = "user_name", nullable = false)
     private String name;
-    @Column(name = "email", nullable = false, unique=true)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+    @OneToMany(fetch = FetchType.LAZY)
+    @Transient
+    private Set<Item> items = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -38,5 +47,11 @@ public class User {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ")";
     }
 }

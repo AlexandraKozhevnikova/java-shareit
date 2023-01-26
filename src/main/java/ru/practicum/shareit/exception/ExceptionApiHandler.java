@@ -10,8 +10,10 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -91,8 +93,21 @@ public class ExceptionApiHandler {
                 );
     }
 
-    @ExceptionHandler(DuplicateKeyException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateKeyException(DuplicateKeyException exception) {
+    //    @ExceptionHandler(DuplicateKeyException.class)
+//    public ResponseEntity<ErrorResponse> handleDuplicateKeyException(DuplicateKeyException exception) {
+//        return ResponseEntity
+//                .status(HttpStatus.CONFLICT)
+//                .body(ErrorResponse.builder()
+//                        .message(exception.getLocalizedMessage())
+//                        .error(ApiError.builder()
+//                                .type("logic")
+//                                .description("object already exist")
+//                                .build()
+//                        ).build()
+//                );
+//    }
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<ErrorResponse> handleSQLException(SQLException exception) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.builder()
