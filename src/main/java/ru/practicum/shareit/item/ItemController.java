@@ -62,7 +62,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam String text) {
-        return itemService.searchItem(text).stream()
+        return itemService.findAllWithText(text).stream()
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());
     }

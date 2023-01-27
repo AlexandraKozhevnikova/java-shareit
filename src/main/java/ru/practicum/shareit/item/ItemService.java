@@ -4,7 +4,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.QItem;
 import ru.practicum.shareit.user.User;
@@ -40,8 +39,7 @@ public class ItemService {
         if (updatedData.getDescription() != null && !updatedData.getDescription().equals(itemFromRep.getDescription())) {
             itemFromRep.setDescription(updatedData.getDescription());
         }
-        if (updatedData.getIsAvailable() != null
-                && !updatedData.getIsAvailable().equals(itemFromRep.getIsAvailable())) {
+        if (updatedData.getIsAvailable() != null && !updatedData.getIsAvailable().equals(itemFromRep.getIsAvailable())) {
             itemFromRep.setIsAvailable(updatedData.getIsAvailable());
         }
 
@@ -58,8 +56,7 @@ public class ItemService {
         return itemRepository.findAllByOwnerIdOrderById(userId);
     }
 
-    @Transactional(readOnly = true)
-    public List<Item> searchItem(String text) {
+    public List<Item> findAllWithText(String text) {
         BooleanExpression isAvailable = QItem.item.isAvailable.isTrue();
         BooleanExpression titleContains = QItem.item.title.containsIgnoreCase(text);
         BooleanExpression descriptionContains = QItem.item.description.containsIgnoreCase(text);
@@ -71,18 +68,16 @@ public class ItemService {
                 );
     }
 
+    public Item checkItemIsExistInRep(long id) {
+        Optional<Item> item = itemRepository.findById(id);
+        return item.orElseThrow(() -> new NoSuchElementException("Вещь с 'id' = " + id + " не существует"));
+    }
+
     private Item checkItemBelongUser(Item unverifiedItem) {
         Item itemFromRep = checkItemIsExistInRep(unverifiedItem.getId());
         if (!itemFromRep.getOwner().getId().equals(unverifiedItem.getOwner().getId())) {
-            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() +
-                    "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
+            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() + "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
         }
         return itemFromRep;
-    }
-
-    private Item checkItemIsExistInRep(long id) {
-        Optional<Item> item = itemRepository.findById(id);
-        return item.orElseThrow(() -> new NoSuchElementException("Вещь с 'id' = " + id
-                + " не существует"));
     }
 }

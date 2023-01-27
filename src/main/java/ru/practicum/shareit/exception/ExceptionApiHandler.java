@@ -1,7 +1,6 @@
 package ru.practicum.shareit.exception;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,8 +8,8 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.booking.ItemNotAvailableForBookingException;
 
-import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
@@ -93,19 +92,6 @@ public class ExceptionApiHandler {
                 );
     }
 
-    //    @ExceptionHandler(DuplicateKeyException.class)
-//    public ResponseEntity<ErrorResponse> handleDuplicateKeyException(DuplicateKeyException exception) {
-//        return ResponseEntity
-//                .status(HttpStatus.CONFLICT)
-//                .body(ErrorResponse.builder()
-//                        .message(exception.getLocalizedMessage())
-//                        .error(ApiError.builder()
-//                                .type("logic")
-//                                .description("object already exist")
-//                                .build()
-//                        ).build()
-//                );
-//    }
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ErrorResponse> handleSQLException(SQLException exception) {
         return ResponseEntity
@@ -129,6 +115,20 @@ public class ExceptionApiHandler {
                         .error(ApiError.builder()
                                 .type("logic")
                                 .description("object does not found")
+                                .build()
+                        ).build()
+                );
+    }
+
+    @ExceptionHandler(ItemNotAvailableForBookingException.class)
+    public ResponseEntity<ErrorResponse> ItemNotAvailableForBookingException(ItemNotAvailableForBookingException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .message(exception.getLocalizedMessage())
+                        .error(ApiError.builder()
+                                .type("logic")
+                                .description("object does not available for booking")
                                 .build()
                         ).build()
                 );
