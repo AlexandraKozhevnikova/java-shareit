@@ -15,7 +15,6 @@ public class BookingOrderResponse {
     @JsonProperty(value = "booker")
     private UserDto author;
     private ItemDto item;
-    private int bookingStatusDbCode;
     private BookingStatus status;
     private LocalDateTime start;
     private LocalDateTime end;

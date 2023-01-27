@@ -25,6 +25,7 @@ public class BookingService {
 
 
     @Transactional
+    @SneakyThrows
     public BookingOrderResponse createBookingOrder(BookingOrderCreateRequest dto, Long authorId) {
         BookingOrder booking = bookingMapping.dtoToEntity(dto);
         User author = userService.getUserById(authorId);
@@ -35,27 +36,54 @@ public class BookingService {
             throw new ItemNotAvailableForBookingException("Вещь с id = " + booking.getItem().getId() +
                     " не доступна для бронирования");
         }
+        if (booking.getItem().getOwner().getId().equals(authorId)) {
+            throw new AccessDeniedException("Владелец не может бронировать свои вещи");
+        }
         booking.setStatus(BookingStatus.WAITING);
         BookingOrder savedBooking = bookingRepository.save(booking);
 
         return bookingMapping.entityToDto(savedBooking);
     }
 
-    public BookingOrderResponse reactBootingOrder(Long userId, Long bookingId, Boolean isApproved) {
-        return null;
-    }
-
-
     @SneakyThrows
-    public BookingOrderResponse getBookingOrder(Long userId, Long bookingId) {
-        User user = userService.getUserById(userId);
-        BookingOrder booking = bookingRepository.findById(bookingId).orElseThrow(() ->
-                new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
+    @Transactional
+    public BookingOrderResponse reactBookingOrder(Long userId, Long bookingId, Boolean isApproved) {
+        BookingOrder booking = getBookingById(bookingId);
 
-        if (userId.equals(booking.getAuthor().getId()) || userId.equals(booking.getItem().getOwner().getId())) {
-            return bookingMapping.entityToDto(booking);
-        } else {
+        if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new AccessDeniedException("Доступ запрещен");
         }
+
+        if (booking.getStatus() != BookingStatus.WAITING) {
+            throw new ItemNotAvailableForBookingException("Бронирование не в статусе WAITING");
+        }
+
+        if (isApproved) {
+            booking.setStatus(BookingStatus.APPROVED);
+        } else {
+            booking.setStatus(BookingStatus.REJECTED);
+        }
+
+        BookingOrder savedBooking = bookingRepository.saveAndFlush(booking);
+
+        return bookingMapping.entityToDto(savedBooking);
+    }
+
+    @SneakyThrows
+    @Transactional(readOnly = true)
+    public BookingOrderResponse getBookingOrderWithUserAccess(Long userId, Long bookingId) {
+        userService.getUserById(userId);
+        BookingOrder booking = getBookingById(bookingId);
+
+        if (!userId.equals(booking.getAuthor().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
+            throw new AccessDeniedException("Доступ запрещен");
+        }
+        return bookingMapping.entityToDto(booking);
+    }
+
+    @Transactional(readOnly = true)
+    public BookingOrder getBookingById(long bookingId) {
+        return bookingRepository.findById(bookingId).orElseThrow(() ->
+                new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
     }
 }

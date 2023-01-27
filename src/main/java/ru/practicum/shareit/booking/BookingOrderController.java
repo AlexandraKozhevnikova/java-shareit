@@ -32,15 +32,15 @@ public class BookingOrderController {
     @PatchMapping("/{bookingId}")
     public BookingOrderResponse reactBookingOrder(@RequestHeader(USER_HEADER) Long userId,
                                                   @PathVariable Long bookingId,
-                                                  @RequestParam("approved") Boolean isApproved){
-        return bookingService.reactBootingOrder(userId, bookingId, isApproved);
-    }
-    @GetMapping("/{bookingId}")
-    public BookingOrderResponse getBookingOrder(@RequestHeader(USER_HEADER) Long userId,
-                                                  @PathVariable Long bookingId){
-        return bookingService.getBookingOrder(userId, bookingId);
+                                                  @RequestParam("approved") Boolean isApproved) {
+        return bookingService.reactBookingOrder(userId, bookingId, isApproved);
     }
 
+    @GetMapping("/{bookingId}")
+    public BookingOrderResponse getBookingOrder(@RequestHeader(USER_HEADER) Long userId,
+                                                @PathVariable Long bookingId) {
+        return bookingService.getBookingOrderWithUserAccess(userId, bookingId);
+    }
 
 
 }

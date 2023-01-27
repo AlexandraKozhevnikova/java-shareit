@@ -5,7 +5,6 @@ import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.time.LocalDateTime;
@@ -35,16 +35,15 @@ public class BookingOrder {
     @JoinColumn(name = "item_id")
     @ManyToOne
     private Item item;
-    @Basic
     @Column(name = "status")
     private int bookingStatusDbCode;
+
     @Transient
     private BookingStatus status;
     @Column(name = "start_time")
     private LocalDateTime start;
     @Column(name = "end_time")
     private LocalDateTime end;
-
 
     @PostLoad
     void fillTransient() {
@@ -54,10 +53,16 @@ public class BookingOrder {
     }
 
     @PrePersist
+    @PreUpdate
     void fillPersistent() {
         if (status != null) {
             this.bookingStatusDbCode = status.getDbCode();
         }
+    }
+
+    public void setStatus(BookingStatus status) {
+        this.status = status;
+        bookingStatusDbCode = -1;
     }
 
     @Override
