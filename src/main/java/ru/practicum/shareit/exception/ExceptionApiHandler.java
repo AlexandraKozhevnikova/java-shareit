@@ -1,6 +1,11 @@
 package ru.practicum.shareit.exception;
 
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,16 +18,20 @@ import ru.practicum.shareit.booking.ItemNotAvailableForBookingException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionApiHandler {
+    private static final Logger log = LogManager.getLogger(ExceptionApiHandler.class);
+
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<List<ErrorResponse>> handleConstraintViolationException(
             final ConstraintViolationException e) {
+        log.error(e.getMessage(), e);
         List<String> listError = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.toList());
@@ -47,6 +56,7 @@ public class ExceptionApiHandler {
         List<String> listError = e.getBindingResult().getFieldErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
+        log.error(e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(
@@ -64,11 +74,12 @@ public class ExceptionApiHandler {
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException exception) {
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(exception.getLocalizedMessage())
+                        .message(e.getLocalizedMessage())
                         .error(ApiError.builder()
                                 .type("validation")
                                 .description("required header is missing")
@@ -79,11 +90,12 @@ public class ExceptionApiHandler {
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
-            MissingServletRequestParameterException exception) {
+            MissingServletRequestParameterException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(exception.getLocalizedMessage())
+                        .message(e.getLocalizedMessage())
                         .error(ApiError.builder()
                                 .type("validation")
                                 .description("request parameter is missing")
@@ -92,12 +104,14 @@ public class ExceptionApiHandler {
                 );
     }
 
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<ErrorResponse> handleSQLException(SQLException exception) {
+    @ExceptionHandler({SQLException.class, DataIntegrityViolationException.class})
+    public ResponseEntity<ErrorResponse> handleSQLException(SQLException e) {
+        log.error(e.getMessage(), e);
+        e.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.builder()
-                        .message(exception.getLocalizedMessage())
+                        .message(e.getLocalizedMessage())
                         .error(ApiError.builder()
                                 .type("logic")
                                 .description("object already exist")
@@ -107,11 +121,12 @@ public class ExceptionApiHandler {
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException exception) {
+    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.builder()
-                        .message(exception.getLocalizedMessage())
+                        .message(e.getLocalizedMessage())
                         .error(ApiError.builder()
                                 .type("logic")
                                 .description("object does not found")
@@ -121,14 +136,30 @@ public class ExceptionApiHandler {
     }
 
     @ExceptionHandler(ItemNotAvailableForBookingException.class)
-    public ResponseEntity<ErrorResponse> ItemNotAvailableForBookingException(ItemNotAvailableForBookingException exception) {
+    public ResponseEntity<ErrorResponse> handleItemNotAvailableForBookingException(ItemNotAvailableForBookingException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(exception.getLocalizedMessage())
+                        .message(e.getLocalizedMessage())
                         .error(ApiError.builder()
                                 .type("logic")
                                 .description("object does not available for booking")
+                                .build()
+                        ).build()
+                );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .message(e.getLocalizedMessage())
+                        .error(ApiError.builder()
+                                .type("common")
+                                .description("no detailed exception")
                                 .build()
                         ).build()
                 );

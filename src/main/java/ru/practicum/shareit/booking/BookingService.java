@@ -12,6 +12,9 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
+import java.nio.file.AccessDeniedException;
+import java.util.NoSuchElementException;
+
 @Service
 @AllArgsConstructor
 public class BookingService {
@@ -21,9 +24,8 @@ public class BookingService {
     private BookingOrderRepository bookingRepository;
 
 
-    @SneakyThrows
     @Transactional
-    public BookingOrderResponse createBookingOrder(BookingOrderCreateRequest dto, long authorId) {
+    public BookingOrderResponse createBookingOrder(BookingOrderCreateRequest dto, Long authorId) {
         BookingOrder booking = bookingMapping.dtoToEntity(dto);
         User author = userService.getUserById(authorId);
         booking.setAuthor(author);
@@ -37,5 +39,23 @@ public class BookingService {
         BookingOrder savedBooking = bookingRepository.save(booking);
 
         return bookingMapping.entityToDto(savedBooking);
+    }
+
+    public BookingOrderResponse reactBootingOrder(Long userId, Long bookingId, Boolean isApproved) {
+        return null;
+    }
+
+
+    @SneakyThrows
+    public BookingOrderResponse getBookingOrder(Long userId, Long bookingId) {
+        User user = userService.getUserById(userId);
+        BookingOrder booking = bookingRepository.findById(bookingId).orElseThrow(() ->
+                new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
+
+        if (userId.equals(booking.getAuthor().getId()) || userId.equals(booking.getItem().getOwner().getId())) {
+            return bookingMapping.entityToDto(booking);
+        } else {
+            throw new AccessDeniedException("Доступ запрещен");
+        }
     }
 }

@@ -73,7 +73,7 @@ public class ItemService {
         return item.orElseThrow(() -> new NoSuchElementException("Вещь с 'id' = " + id + " не существует"));
     }
 
-    private Item checkItemBelongUser(Item unverifiedItem) {
+    public Item checkItemBelongUser(Item unverifiedItem) {
         Item itemFromRep = checkItemIsExistInRep(unverifiedItem.getId());
         if (!itemFromRep.getOwner().getId().equals(unverifiedItem.getOwner().getId())) {
             throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() + "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
