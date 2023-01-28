@@ -12,4 +12,7 @@ public interface ItemMapper {
 
     @Mapping(target = "name", source = "title")
     ItemDto itemToDto(Item item);
+
+    @Mapping(target = "name", source = "title")
+    GetAllItemsForOwnerResponseDto itemToDtoWithBookingInfo(Item item);
 }

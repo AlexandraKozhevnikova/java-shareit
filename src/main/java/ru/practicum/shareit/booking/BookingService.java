@@ -2,11 +2,13 @@ package ru.practicum.shareit.booking;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderMapping;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
@@ -29,6 +31,8 @@ public class BookingService {
     private UserService userService;
     private ItemService itemService;
     private BookingOrderRepository bookingRepository;
+
+    private final JPAQueryFactory jpaQueryFactory;
 
 
     @Transactional
@@ -119,6 +123,34 @@ public class BookingService {
         return StreamSupport.stream(orders.spliterator(), false)
                 .map(it -> bookingMapping.entityToDto(it))
                 .collect(Collectors.toList());
+    }
+
+    public BookingInfoDto getNextBookingForItem(Long itemId, Long authorId) {
+        BookingOrder order = jpaQueryFactory
+                .selectFrom(QBookingOrder.bookingOrder)
+                .where(QBookingOrder.bookingOrder.bookingStatusDbCode
+                        .eq(BookingStatus.APPROVED.getDbCode()))
+                .where(QBookingOrder.bookingOrder.item.id
+                        .eq(itemId))
+                .where(QBookingOrder.bookingOrder.start
+                        .after(LocalDateTime.now()))
+                .orderBy(QBookingOrder.bookingOrder.start.asc())
+                .fetchFirst();
+        return order == null ? null : new BookingInfoDto(order.getId(), order.getAuthor().getId());
+    }
+
+    public BookingInfoDto getLastBookingForItem(Long itemId, Long authorId) {
+        BookingOrder order = jpaQueryFactory
+                .selectFrom(QBookingOrder.bookingOrder)
+                .where(QBookingOrder.bookingOrder.bookingStatusDbCode
+                        .eq(BookingStatus.APPROVED.getDbCode()))
+                .where(QBookingOrder.bookingOrder.item.id
+                        .eq(itemId))
+                .where(QBookingOrder.bookingOrder.start
+                        .before(LocalDateTime.now()))
+                .orderBy(QBookingOrder.bookingOrder.start.desc())
+                .fetchFirst();
+        return order == null ? null : new BookingInfoDto(order.getId(), order.getAuthor().getId());
     }
 
     private BooleanExpression getFilterByState(String state) {

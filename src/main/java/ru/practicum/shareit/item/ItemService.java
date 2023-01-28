@@ -51,7 +51,7 @@ public class ItemService {
         return checkItemIsExistInRep(itemId);
     }
 
-    public List<Item> getOwnersItems(int userId) {
+    public List<Item> getOwnersItems(long userId) {
         userService.getUserById(userId);
         return itemRepository.findAllByOwnerIdOrderById(userId);
     }
