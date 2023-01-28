@@ -96,13 +96,34 @@ public class BookingService {
 
 
     @Transactional(readOnly = true)
-    public List<BookingOrderResponse> getAllUserBookingOrder(Long userId, String state) {
-        userService.getUserById(userId);
+    public List<BookingOrderResponse> getAllAuthorBookingOrder(Long authorId, String state) {
+        userService.getUserById(authorId);
 
+        BooleanExpression byStatus = getFilterByState(state);
+        BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(authorId);
+        Iterable<BookingOrder> orders = bookingRepository.findAll(byAuthor.and(byStatus),
+                new QSort(QBookingOrder.bookingOrder.start.desc()));
+
+        return StreamSupport.stream(orders.spliterator(), false)
+                .map(it -> bookingMapping.entityToDto(it))
+                .collect(Collectors.toList());
+    }
+
+    public List<BookingOrderResponse> getAllOwnerBookingOrder(Long ownerId, String state) {
+        userService.getUserById(ownerId);
+        BooleanExpression byStatus = getFilterByState(state);
+        BooleanExpression byOwner = QBookingOrder.bookingOrder.item.owner.id.eq(ownerId);
+        Iterable<BookingOrder> orders = bookingRepository.findAll(byOwner.and(byStatus),
+                new QSort(QBookingOrder.bookingOrder.start.desc()));
+
+        return StreamSupport.stream(orders.spliterator(), false)
+                .map(it -> bookingMapping.entityToDto(it))
+                .collect(Collectors.toList());
+    }
+
+    private BooleanExpression getFilterByState(String state) {
         BookingStatus status = BookingStatus.ofApiValue(state);
-
         BooleanExpression byStatus = Expressions.asBoolean(true).isTrue();
-
 
         if (status == BookingStatus.ALL) {
             byStatus = Expressions.asBoolean(true).isTrue();
@@ -119,14 +140,7 @@ public class BookingService {
         } else if (status == BookingStatus.UNDERFUND) {
             throw new IllegalArgumentException("Unknown state: " + state);
         }
-
-        BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(userId);
-
-        Iterable<BookingOrder> orders = bookingRepository.findAll(byAuthor.and(byStatus),
-                new QSort(QBookingOrder.bookingOrder.start.desc()));
-
-        return StreamSupport.stream(orders.spliterator(), false)
-                .map(it -> bookingMapping.entityToDto(it))
-                .collect(Collectors.toList());
+        return byStatus;
     }
 }
+
