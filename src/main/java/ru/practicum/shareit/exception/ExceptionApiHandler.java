@@ -37,8 +37,8 @@ public class ExceptionApiHandler {
                 .body(
                         listError.stream()
                                 .map(it -> ErrorResponse.builder()
-                                        .message(it)
-                                        .error(ApiError.builder()
+                                        .error(it)
+                                        .errorInfo(ApiError.builder()
                                                 .type("validation")
                                                 .description("value is not valid")
                                                 .build()
@@ -59,8 +59,8 @@ public class ExceptionApiHandler {
                 .body(
                         listError.stream()
                                 .map(it -> ErrorResponse.builder()
-                                        .message(it)
-                                        .error(ApiError.builder()
+                                        .error(it)
+                                        .errorInfo(ApiError.builder()
                                                 .type("validation")
                                                 .description("value is not valid")
                                                 .build()
@@ -76,8 +76,8 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("validation")
                                 .description("required header is missing")
                                 .build()
@@ -92,8 +92,8 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("validation")
                                 .description("request parameter is missing")
                                 .build()
@@ -108,8 +108,8 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("logic")
                                 .description("object already exist")
                                 .build()
@@ -123,8 +123,8 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("logic")
                                 .description("object does not found")
                                 .build()
@@ -138,10 +138,25 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("logic")
                                 .description("object does not available for booking")
+                                .build()
+                        ).build()
+                );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
+                                .type("validation")
+                                .description("object does not valid")
                                 .build()
                         ).build()
                 );
@@ -153,8 +168,8 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.builder()
-                        .message(e.getLocalizedMessage())
-                        .error(ApiError.builder()
+                        .error(e.getLocalizedMessage())
+                        .errorInfo(ApiError.builder()
                                 .type("common")
                                 .description("no detailed exception")
                                 .build()

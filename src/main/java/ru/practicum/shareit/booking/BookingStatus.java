@@ -4,6 +4,10 @@ import java.util.stream.Stream;
 
 public enum BookingStatus {
     /**
+     * Фейковое значение для ошибки при конвертации
+     */
+    UNDERFUND(0, "UNDERFUND"),
+    /**
      * Создана заявка на бронирование. Ожидает реакции собственника вещи
      */
     WAITING(100, "WAITING"),
@@ -57,10 +61,17 @@ public enum BookingStatus {
         this.apiValue = apiValue;
     }
 
-    public static BookingStatus of(int dbCode) {
+    public static BookingStatus ofDbCode(int dbCode) {
         return Stream.of(BookingStatus.values())
                 .filter(it -> it.getDbCode() == dbCode)
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
+    }
+
+    public static BookingStatus ofApiValue(String apiValue) {
+        return Stream.of(BookingStatus.values())
+                .filter(it -> it.apiValue.equals(apiValue))
+                .findFirst()
+                .orElse(BookingStatus.UNDERFUND);
     }
 }

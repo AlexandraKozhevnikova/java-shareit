@@ -14,6 +14,7 @@ import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -40,6 +41,13 @@ public class BookingOrderController {
     public BookingOrderResponse getBookingOrder(@RequestHeader(USER_HEADER) Long userId,
                                                 @PathVariable Long bookingId) {
         return bookingService.getBookingOrderWithUserAccess(userId, bookingId);
+    }
+
+    @GetMapping
+    public List<BookingOrderResponse> getAllUserBookingOrders(@RequestHeader(USER_HEADER) Long userId,
+                                                              @RequestParam(name = "state", required = false,
+                                                                      defaultValue = "ALL") String state) {
+        return bookingService.getAllUserBookingOrder(userId, state);
     }
 
 

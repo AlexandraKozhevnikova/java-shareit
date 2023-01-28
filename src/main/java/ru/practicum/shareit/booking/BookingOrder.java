@@ -48,7 +48,7 @@ public class BookingOrder {
     @PostLoad
     void fillTransient() {
         if (bookingStatusDbCode > 0) {
-            this.status = BookingStatus.of(bookingStatusDbCode);
+            this.status = BookingStatus.ofDbCode(bookingStatusDbCode);
         }
     }
 

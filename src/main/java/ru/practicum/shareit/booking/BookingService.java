@@ -1,7 +1,10 @@
 package ru.practicum.shareit.booking;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
@@ -13,7 +16,11 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @AllArgsConstructor
@@ -85,5 +92,41 @@ public class BookingService {
     public BookingOrder getBookingById(long bookingId) {
         return bookingRepository.findById(bookingId).orElseThrow(() ->
                 new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<BookingOrderResponse> getAllUserBookingOrder(Long userId, String state) {
+        userService.getUserById(userId);
+
+        BookingStatus status = BookingStatus.ofApiValue(state);
+
+        BooleanExpression byStatus = Expressions.asBoolean(true).isTrue();
+
+
+        if (status == BookingStatus.ALL) {
+            byStatus = Expressions.asBoolean(true).isTrue();
+        } else if (status == BookingStatus.APPROVED || status == BookingStatus.REJECTED || status == BookingStatus.WAITING) {
+            byStatus = QBookingOrder.bookingOrder.bookingStatusDbCode
+                    .eq(status.getDbCode());
+        } else if (status == BookingStatus.CURRENT) {
+            byStatus = Expressions.asDateTime(LocalDateTime.now())
+                    .between(QBookingOrder.bookingOrder.start, QBookingOrder.bookingOrder.end);
+        } else if (status == BookingStatus.FUTURE) {
+            byStatus = QBookingOrder.bookingOrder.start.after(LocalDateTime.now());
+        } else if (status == BookingStatus.PAST) {
+            byStatus = QBookingOrder.bookingOrder.end.before(LocalDateTime.now());
+        } else if (status == BookingStatus.UNDERFUND) {
+            throw new IllegalArgumentException("Unknown state: " + state);
+        }
+
+        BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(userId);
+
+        Iterable<BookingOrder> orders = bookingRepository.findAll(byAuthor.and(byStatus),
+                new QSort(QBookingOrder.bookingOrder.start.desc()));
+
+        return StreamSupport.stream(orders.spliterator(), false)
+                .map(it -> bookingMapping.entityToDto(it))
+                .collect(Collectors.toList());
     }
 }
