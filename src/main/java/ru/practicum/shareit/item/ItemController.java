@@ -11,13 +11,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.GetAllItemsForOwnerResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -41,7 +46,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@RequestHeader(USER_HEADER) Long userId,
-                              @PathVariable long itemId,
+                              @PathVariable Long itemId,
                               @RequestBody ItemDto itemDto) {
         Item updatedData = itemMapper.dtoToItem(itemDto);
         updatedData.setId(itemId);
@@ -51,7 +56,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public GetAllItemsForOwnerResponseDto getItem(@RequestHeader(USER_HEADER) Long userId,
-                                                  @PathVariable int itemId) {
+                                                  @PathVariable Long itemId) {
         Item item = itemService.getItemWithUserAccess(itemId, userId);
         GetAllItemsForOwnerResponseDto response = itemMapper.itemToDtoWithBookingInfo(item);
         if (userId.equals(item.getOwner().getId())) {
@@ -77,5 +82,13 @@ public class ItemController {
         return itemService.findAllWithText(text).stream()
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId,
+                                 @PathVariable Long itemId,
+                                 @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
+        Comment comment = itemService.addComment(userId, itemId, text.get("text"));
+        return itemMapper.commentToDto(comment);
     }
 }

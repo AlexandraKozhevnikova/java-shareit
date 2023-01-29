@@ -174,5 +174,20 @@ public class BookingService {
         }
         return byStatus;
     }
+
+    public User checkUserHadItemBooking(long userId, long itemId) {
+        BookingOrder order = jpaQueryFactory
+                .selectFrom(QBookingOrder.bookingOrder)
+                .where(QBookingOrder.bookingOrder.item.id.eq(itemId))
+                .where(QBookingOrder.bookingOrder.author.id.eq(userId))
+                .where(QBookingOrder.bookingOrder.start.before(LocalDateTime.now()))
+                .where(QBookingOrder.bookingOrder.bookingStatusDbCode.ne(BookingStatus.REJECTED.getDbCode()))
+                .fetchFirst();
+
+        if (order == null) {
+            throw new IllegalArgumentException("Пользователь не может оставить отзыва об этой вещи");
+        }
+        return order.getAuthor();
+    }
 }
 

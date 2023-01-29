@@ -111,7 +111,7 @@ public class ExceptionApiHandler {
                         .error(e.getLocalizedMessage())
                         .errorInfo(ApiError.builder()
                                 .type("logic")
-                                .description("object already exist")
+                                .description("exception from db")
                                 .build()
                         ).build()
                 );
