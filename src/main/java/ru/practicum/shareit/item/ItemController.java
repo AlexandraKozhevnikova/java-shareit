@@ -63,6 +63,12 @@ public class ItemController {
             response.setNextBooking(bookingService.getNextBookingForItem(item.getId(), userId));
             response.setLastBooking(bookingService.getLastBookingForItem(item.getId(), userId));
         }
+
+        List<Comment> comments = itemService.getComment(itemId);
+        response.setComments(comments.stream()
+                .map(itemMapper::commentToDto)
+                .collect(Collectors.toList())
+        );
         return response;
     }
 
