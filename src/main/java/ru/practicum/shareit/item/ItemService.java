@@ -4,10 +4,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.QComment;
 import ru.practicum.shareit.item.model.QItem;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
@@ -90,7 +92,8 @@ public class ItemService {
     public Item checkItemBelongUser(Item unverifiedItem) {
         Item itemFromRep = checkItemIsExistInRep(unverifiedItem.getId());
         if (!itemFromRep.getOwner().getId().equals(unverifiedItem.getOwner().getId())) {
-            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() + "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
+            throw new NoSuchElementException("У пользователя с id = " + unverifiedItem.getOwner().getId() +
+                    "  нет прав редактировать вещь с  id = " + unverifiedItem.getId() + " ");
         }
         return itemFromRep;
     }
@@ -103,5 +106,11 @@ public class ItemService {
         User user = bookingService.checkUserHadItemBooking(userId, itemId);
         Comment comment = new Comment(null, user, item, text);
         return commentRepository.save(comment);
+    }
+
+    public List<Comment> getComment(Long itemId) {
+        return (List<Comment>) commentRepository.findAll(
+                QComment.comment.item.id.eq(itemId),
+                new QSort(QComment.comment.created.desc()));
     }
 }
