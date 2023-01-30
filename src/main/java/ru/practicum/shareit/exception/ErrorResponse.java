@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class ErrorResponse {
-    String error;
-    ApiError errorInfo;
+    private String error;
+    private ApiError errorInfo;
 }
 
 

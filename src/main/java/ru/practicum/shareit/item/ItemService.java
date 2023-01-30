@@ -78,10 +78,7 @@ public class ItemService {
         BooleanExpression descriptionContains = QItem.item.description.containsIgnoreCase(text);
 
         return StringUtils.isBlank(text) ? Collections.EMPTY_LIST
-                : (List<Item>) itemRepository
-                .findAll(isAvailable
-                        .andAnyOf(descriptionContains, titleContains)
-                );
+                : (List<Item>) itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains));
     }
 
     public Item checkItemIsExistInRep(long id) {

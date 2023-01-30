@@ -27,9 +27,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "user_name", nullable = false, length = 100)
     private String name;
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 400)
     private String email;
     @OneToMany(fetch = FetchType.LAZY)
     @Transient

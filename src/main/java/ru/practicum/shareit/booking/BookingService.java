@@ -12,6 +12,9 @@ import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderMapping;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
+import ru.practicum.shareit.booking.model.BookingOrder;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.model.QBookingOrder;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
@@ -27,10 +30,10 @@ import java.util.stream.StreamSupport;
 @Service
 @AllArgsConstructor
 public class BookingService {
-    private BookingOrderMapping bookingMapping;
-    private UserService userService;
-    private ItemService itemService;
-    private BookingOrderRepository bookingRepository;
+    private final BookingOrderMapping bookingMapping;
+    private final UserService userService;
+    private final ItemService itemService;
+    private final BookingOrderRepository bookingRepository;
 
     private final JPAQueryFactory jpaQueryFactory;
 

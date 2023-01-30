@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,20 +29,19 @@ public class BookingOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User author;
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "item_id", nullable = false)
     @ManyToOne
     private Item item;
     @Column(name = "status")
     private int bookingStatusDbCode;
-
     @Transient
     private BookingStatus status;
-    @Column(name = "start_time")
+    @Column(name = "start_time", nullable = false)
     private LocalDateTime start;
-    @Column(name = "end_time")
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime end;
 
     @PostLoad

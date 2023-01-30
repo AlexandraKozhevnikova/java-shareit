@@ -2,7 +2,7 @@ package ru.practicum.shareit.booking.dto;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.shareit.booking.BookingOrder;
+import ru.practicum.shareit.booking.model.BookingOrder;
 
 @Mapper(componentModel = "spring")
 public abstract class BookingOrderMapping {

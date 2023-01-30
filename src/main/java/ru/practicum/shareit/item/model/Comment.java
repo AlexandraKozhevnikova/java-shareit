@@ -28,15 +28,15 @@ public class Comment {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne
     private User user;
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "item_id", nullable = false)
     @ManyToOne
     private Item item;
-    @Column(name = "note")
+    @Column(name = "note", columnDefinition = "TEXT", nullable = false)
     private String text;
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     @CreationTimestamp
     private LocalDateTime created;
 
