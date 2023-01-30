@@ -2,12 +2,14 @@ package ru.practicum.shareit.item.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Data
+@Getter
+@Setter
 public class ItemDto {
     private Integer id;
     @NotBlank(message = "'name' must not be blank")
