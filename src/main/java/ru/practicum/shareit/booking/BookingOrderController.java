@@ -56,6 +56,4 @@ public class BookingOrderController {
                                                                        defaultValue = "ALL") String state) {
         return bookingService.getAllOwnerBookingOrder(userId, state);
     }
-
-
 }
