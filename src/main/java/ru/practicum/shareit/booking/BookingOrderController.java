@@ -14,6 +14,7 @@ import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
 
 import javax.validation.Valid;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -39,7 +40,7 @@ public class BookingOrderController {
 
     @GetMapping("/{bookingId}")
     public BookingOrderResponse getBookingOrder(@RequestHeader(USER_HEADER) Long userId,
-                                                @PathVariable Long bookingId) {
+                                                @PathVariable Long bookingId) throws AccessDeniedException {
         return bookingService.getBookingOrderWithUserAccess(userId, bookingId);
     }
 

@@ -83,9 +83,8 @@ public class BookingService {
         return bookingMapping.entityToDto(savedBooking);
     }
 
-    @SneakyThrows
     @Transactional(readOnly = true)
-    public BookingOrderResponse getBookingOrderWithUserAccess(Long userId, Long bookingId) {
+    public BookingOrderResponse getBookingOrderWithUserAccess(Long userId, Long bookingId) throws AccessDeniedException {
         userService.getUserById(userId);
         BookingOrder booking = getBookingById(bookingId);
 
