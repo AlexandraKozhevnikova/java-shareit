@@ -1,18 +1,12 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
-public interface ItemRepository {
+public interface ItemRepository extends JpaRepository<Item, Long>, QuerydslPredicateExecutor<Item> {
 
-    Item createItem(Item item);
-
-    Item updateItem(Item item);
-
-    List<Item> getOwnersItems(int ownerId);
-
-    Item getItem(int id);
-
-    List<Item> searchItem(String text);
+    List<Item> findAllByOwnerIdOrderById(long ownerId);
 }
