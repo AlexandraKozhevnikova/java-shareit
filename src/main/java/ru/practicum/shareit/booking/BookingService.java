@@ -27,6 +27,10 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
+import static ru.practicum.shareit.booking.model.BookingStatus.REJECTED;
+import static ru.practicum.shareit.booking.model.BookingStatus.WAITING;
+
 @Service
 @AllArgsConstructor
 public class BookingService {
@@ -53,7 +57,7 @@ public class BookingService {
         if (booking.getItem().getOwner().getId().equals(authorId)) {
             throw new AccessDeniedException("Владелец не может бронировать свои вещи");
         }
-        booking.setStatus(BookingStatus.WAITING);
+        booking.setStatus(WAITING);
         BookingOrder savedBooking = bookingRepository.save(booking);
 
         return bookingMapping.entityToDto(savedBooking);
@@ -68,14 +72,14 @@ public class BookingService {
             throw new AccessDeniedException("Доступ запрещен");
         }
 
-        if (booking.getStatus() != BookingStatus.WAITING) {
+        if (booking.getStatus() != WAITING) {
             throw new ItemNotAvailableForBookingException("Бронирование не в статусе WAITING");
         }
 
         if (isApproved) {
-            booking.setStatus(BookingStatus.APPROVED);
+            booking.setStatus(APPROVED);
         } else {
-            booking.setStatus(BookingStatus.REJECTED);
+            booking.setStatus(REJECTED);
         }
 
         BookingOrder savedBooking = bookingRepository.saveAndFlush(booking);
@@ -111,7 +115,7 @@ public class BookingService {
                 new QSort(QBookingOrder.bookingOrder.start.desc()));
 
         return StreamSupport.stream(orders.spliterator(), false)
-                .map(it -> bookingMapping.entityToDto(it))
+                .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }
 
@@ -123,7 +127,7 @@ public class BookingService {
                 new QSort(QBookingOrder.bookingOrder.start.desc()));
 
         return StreamSupport.stream(orders.spliterator(), false)
-                .map(it -> bookingMapping.entityToDto(it))
+                .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }
 
@@ -131,7 +135,7 @@ public class BookingService {
         BookingOrder order = jpaQueryFactory
                 .selectFrom(QBookingOrder.bookingOrder)
                 .where(QBookingOrder.bookingOrder.bookingStatusDbCode
-                        .eq(BookingStatus.APPROVED.getDbCode()))
+                        .eq(APPROVED.getDbCode()))
                 .where(QBookingOrder.bookingOrder.item.id
                         .eq(itemId))
                 .where(QBookingOrder.bookingOrder.start
@@ -145,7 +149,7 @@ public class BookingService {
         BookingOrder order = jpaQueryFactory
                 .selectFrom(QBookingOrder.bookingOrder)
                 .where(QBookingOrder.bookingOrder.bookingStatusDbCode
-                        .eq(BookingStatus.APPROVED.getDbCode()))
+                        .eq(APPROVED.getDbCode()))
                 .where(QBookingOrder.bookingOrder.item.id
                         .eq(itemId))
                 .where(QBookingOrder.bookingOrder.start
@@ -157,22 +161,30 @@ public class BookingService {
 
     private BooleanExpression getFilterByState(String state) {
         BookingStatus status = BookingStatus.ofApiValue(state);
-        BooleanExpression byStatus = Expressions.asBoolean(true).isTrue();
+        BooleanExpression byStatus;
 
-        if (status == BookingStatus.ALL) {
-            byStatus = Expressions.asBoolean(true).isTrue();
-        } else if (status == BookingStatus.APPROVED || status == BookingStatus.REJECTED || status == BookingStatus.WAITING) {
-            byStatus = QBookingOrder.bookingOrder.bookingStatusDbCode
-                    .eq(status.getDbCode());
-        } else if (status == BookingStatus.CURRENT) {
-            byStatus = Expressions.asDateTime(LocalDateTime.now())
-                    .between(QBookingOrder.bookingOrder.start, QBookingOrder.bookingOrder.end);
-        } else if (status == BookingStatus.FUTURE) {
-            byStatus = QBookingOrder.bookingOrder.start.after(LocalDateTime.now());
-        } else if (status == BookingStatus.PAST) {
-            byStatus = QBookingOrder.bookingOrder.end.before(LocalDateTime.now());
-        } else if (status == BookingStatus.UNDERFUND) {
-            throw new IllegalArgumentException("Unknown state: " + state);
+        switch (status) {
+            case ALL:
+                byStatus = Expressions.asBoolean(true).isTrue();
+                break;
+            case APPROVED:
+            case REJECTED:
+            case WAITING:
+                byStatus = QBookingOrder.bookingOrder.bookingStatusDbCode
+                        .eq(status.getDbCode());
+                break;
+            case CURRENT:
+                byStatus = Expressions.asDateTime(LocalDateTime.now())
+                        .between(QBookingOrder.bookingOrder.start, QBookingOrder.bookingOrder.end);
+                break;
+            case FUTURE:
+                byStatus = QBookingOrder.bookingOrder.start.after(LocalDateTime.now());
+                break;
+            case PAST:
+                byStatus = QBookingOrder.bookingOrder.end.before(LocalDateTime.now());
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown state: " + state);
         }
         return byStatus;
     }
@@ -183,7 +195,7 @@ public class BookingService {
                 .where(QBookingOrder.bookingOrder.item.id.eq(itemId))
                 .where(QBookingOrder.bookingOrder.author.id.eq(userId))
                 .where(QBookingOrder.bookingOrder.start.before(LocalDateTime.now()))
-                .where(QBookingOrder.bookingOrder.bookingStatusDbCode.ne(BookingStatus.REJECTED.getDbCode()))
+                .where(QBookingOrder.bookingOrder.bookingStatusDbCode.ne(REJECTED.getDbCode()))
                 .fetchFirst();
 
         if (order == null) {
