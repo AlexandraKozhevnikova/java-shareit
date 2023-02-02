@@ -61,7 +61,7 @@ public class BookingOrderControllerTest {
         userDto.setName("Antony");
 
         ItemDto itemDto = new ItemDto();
-        itemDto.setId(2);
+        itemDto.setId(2L);
         itemDto.setName("cycle");
         itemDto.setDescription("new sport cycle");
         itemDto.setIsAvailable(true);

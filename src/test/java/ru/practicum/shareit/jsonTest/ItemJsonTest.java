@@ -20,7 +20,7 @@ public class ItemJsonTest {
     @Test
     void serializeTest() throws IOException {
         ItemDto dto = new ItemDto();
-        dto.setId(1);
+        dto.setId(1L);
         dto.setName("cycle");
         dto.setDescription("new sport cycle");
         dto.setIsAvailable(true);

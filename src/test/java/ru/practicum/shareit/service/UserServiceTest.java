@@ -125,7 +125,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUser_whenUpdateOnlyNameForExistUser_thenReturnUserWithUpdatedName() {//
+    void updateUser_whenUpdateOnlyNameForExistUser_thenReturnUserWithUpdatedName() {
         User oldUser = new User();
         oldUser.setName("Sasha");
         oldUser.setEmail("sa@ya.ru");
@@ -180,6 +180,4 @@ public class UserServiceTest {
         assertEquals(oldUser.getEmail(), savedUser.getEmail());
         assertTrue(savedUser.getItems().isEmpty());
     }
-
-
 }

@@ -35,7 +35,7 @@ public class BookingJsonTest {
         userDto.setName("Antony");
 
         ItemDto itemDto = new ItemDto();
-        itemDto.setId(1);
+        itemDto.setId(1L);
         itemDto.setName("cycle");
         itemDto.setDescription("new sport cycle");
         itemDto.setIsAvailable(true);

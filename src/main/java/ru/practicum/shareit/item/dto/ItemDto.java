@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class ItemDto {
-    private Integer id;
+    private Long id;
     @NotBlank(message = "'name' must not be blank")
     private String name;
     @NotBlank(message = "'description' must not be blank")
