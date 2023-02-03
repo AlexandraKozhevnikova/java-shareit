@@ -1,4 +1,4 @@
-package ru.practicum.shareit.service;
+package ru.practicum.shareit.serviceTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

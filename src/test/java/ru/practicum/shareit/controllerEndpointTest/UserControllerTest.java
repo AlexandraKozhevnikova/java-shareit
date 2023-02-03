@@ -1,4 +1,4 @@
-package ru.practicum.shareit.controllerTest;
+package ru.practicum.shareit.controllerEndpointTest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
