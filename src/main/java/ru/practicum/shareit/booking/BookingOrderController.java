@@ -47,7 +47,8 @@ public class BookingOrderController {
     @GetMapping
     public List<BookingOrderResponse> getAllAuthorBookingOrders(@RequestHeader(USER_HEADER) Long userId,
                                                                 @RequestParam(name = "state", required = false,
-                                                                        defaultValue = "ALL") String state) {
+                                                                        defaultValue = "ALL")
+                                                                String state) {
         return bookingService.getAllAuthorBookingOrder(userId, state);
     }
 

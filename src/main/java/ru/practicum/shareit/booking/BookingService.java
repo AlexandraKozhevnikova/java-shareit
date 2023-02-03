@@ -55,7 +55,7 @@ public class BookingService {
                     " не доступна для бронирования");
         }
         if (booking.getItem().getOwner().getId().equals(authorId)) {
-            throw new AccessDeniedException("Владелец не может бронировать свои вещи");
+            throw new ItemCanNotBeBookedByOwnerException("Владелец не может бронировать свои вещи");
         }
         booking.setStatus(WAITING);
         BookingOrder savedBooking = bookingRepository.save(booking);

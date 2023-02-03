@@ -62,7 +62,9 @@ public class ItemController {
         }
 
         List<Comment> comments = itemService.getComment(itemId);
-        response.setComments(comments.stream().map(itemMapper::commentToDto).collect(Collectors.toList()));
+        response.setComments(comments.stream()
+                .map(itemMapper::commentToDto)
+                .collect(Collectors.toList()));
         return response;
     }
 
@@ -76,11 +78,14 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam String text) {
-        return itemService.findAllWithText(text).stream().map(itemMapper::itemToDto).collect(Collectors.toList());
+        return itemService.findAllWithText(text).stream()
+                .map(itemMapper::itemToDto)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId, @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
+    public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId,
+                                 @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
         Comment comment = itemService.addComment(userId, itemId, text.get("text"));
         return itemMapper.commentToDto(comment);
     }

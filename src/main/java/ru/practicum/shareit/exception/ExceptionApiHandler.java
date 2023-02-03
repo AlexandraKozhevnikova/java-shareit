@@ -11,6 +11,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.booking.ItemCanNotBeBookedByOwnerException;
 import ru.practicum.shareit.booking.ItemNotAvailableForBookingException;
 
 import javax.validation.ConstraintViolation;
@@ -138,10 +139,25 @@ public class ExceptionApiHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.builder()
-                        .error(e.getLocalizedMessage())
+                        .error(e.getMessage())
                         .errorInfo(ApiError.builder()
                                 .type("logic")
                                 .description("object does not available for booking")
+                                .build()
+                        ).build()
+                );
+    }
+
+    @ExceptionHandler(ItemCanNotBeBookedByOwnerException.class)
+    public ResponseEntity<ErrorResponse> handleItemCanNotBeBookedByOwnerException(ItemCanNotBeBookedByOwnerException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .error(e.getMessage())
+                        .errorInfo(ApiError.builder()
+                                .type("logic")
+                                .description("item can not be booked by owner")
                                 .build()
                         ).build()
                 );

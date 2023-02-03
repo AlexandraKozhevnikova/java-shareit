@@ -13,16 +13,22 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.ItemController;
 import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.item.dto.GetAllItemsForOwnerResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,11 +68,15 @@ public class ItemControllerTest {
         itemRequest.setDescription("new sport cycle");
         itemRequest.setIsAvailable(true);
 
+        User user = new User();
+        user.setId(100L);
+
         itemResponse = new Item();
         itemResponse.setId(1L);
         itemResponse.setTitle("cycle");
         itemResponse.setDescription("new sport cycle");
         itemResponse.setIsAvailable(true);
+        itemResponse.setOwner(user);
     }
 
     @Test
@@ -111,5 +121,36 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)));
     }
+
+    @Test
+    void getItem_whenItemWithoutCommentAndGetByNotOwner() throws Exception {
+        GetAllItemsForOwnerResponseDto getAllDto = new GetAllItemsForOwnerResponseDto();
+        getAllDto.setId(1L);
+        getAllDto.setName("book");
+        getAllDto.setDescription("about java");
+        getAllDto.setIsAvailable(true);
+
+        doReturn(itemResponse)
+                .when(itemService).getItemWithUserAccess(anyLong(), anyLong());
+        doReturn(getAllDto)
+                .when(itemMapper).itemToDtoWithBookingInfo(any(Item.class));
+
+        mvc.perform(MockMvcRequestBuilders
+                        .get("/items/{itemId}", 1)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk());
+
+        verify(itemService, times(1))
+                .getItemWithUserAccess(1L, 2L);
+        verify(itemMapper, times(1))
+                .itemToDtoWithBookingInfo(itemResponse);
+        verify(bookingService, never())
+                .getNextBookingForItem(anyLong(), anyLong());
+        verify(bookingService, never())
+                .getLastBookingForItem(anyLong(), anyLong());
+
+    }
+
+    //todo  закончила здесь
 }
 

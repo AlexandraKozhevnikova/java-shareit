@@ -1,4 +1,4 @@
-package ru.practicum.shareit.controllerEndpointTest;
+package ru.practicum.shareit.controllerMethodTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
