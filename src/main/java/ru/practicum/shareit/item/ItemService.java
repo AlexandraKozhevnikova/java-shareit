@@ -52,10 +52,12 @@ public class ItemService {
         if (updatedData.getTitle() != null && !updatedData.getTitle().equals(itemFromRep.getTitle())) {
             itemFromRep.setTitle(updatedData.getTitle());
         }
-        if (updatedData.getDescription() != null && !updatedData.getDescription().equals(itemFromRep.getDescription())) {
+        if (updatedData.getDescription() != null && !updatedData.getDescription()
+                .equals(itemFromRep.getDescription())) {
             itemFromRep.setDescription(updatedData.getDescription());
         }
-        if (updatedData.getIsAvailable() != null && !updatedData.getIsAvailable().equals(itemFromRep.getIsAvailable())) {
+        if (updatedData.getIsAvailable() != null && !updatedData.getIsAvailable()
+                .equals(itemFromRep.getIsAvailable())) {
             itemFromRep.setIsAvailable(updatedData.getIsAvailable());
         }
 

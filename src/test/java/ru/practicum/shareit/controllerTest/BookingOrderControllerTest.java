@@ -2,15 +2,17 @@ package ru.practicum.shareit.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.format.Formatter;
+import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -20,6 +22,7 @@ import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.ExceptionApiHandler;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -27,33 +30,31 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@ExtendWith({MockitoExtension.class})
+@WebMvcTest(BookingOrderController.class)
 public class BookingOrderControllerTest {
-    @Mock
+    @MockBean
     private BookingService bookingService;
-    @InjectMocks
+    @Autowired
+    private ObjectMapper mapper;
+    @Autowired
     private BookingOrderController controller;
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Autowired
     private MockMvc mvc;
     private BookingOrderResponse bookingOrderResponse;
     private BookingOrderCreateRequest bookingCreateRequest;
     private UserDto userDto;
-//    private final ApplicationContext applicationContext;
-//    private final ApplicationConversionService conversionService;
-//    private final ExceptionApiHandler exceptionApiHandler;
-//
-//    public BookingOrderControllerTest(ApplicationContext applicationContext, ApplicationConversionService conversionService, ExceptionApiHandler exceptionApiHandler) {
-//        this.applicationContext = applicationContext;
-//        this.conversionService = conversionService;
-//        this.exceptionApiHandler = exceptionApiHandler;
-//    }
+    @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
+    private final FormattingConversionService conversionService = new FormattingConversionService();
+    @Autowired
+    private ExceptionApiHandler exceptionApiHandler;
+
 
     @BeforeEach
-    void setUp1() {
-        mvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .build();
+    void setUpData() {
 
         userDto = new UserDto();
         userDto.setId(3);
@@ -80,46 +81,41 @@ public class BookingOrderControllerTest {
         bookingOrderResponse.setEnd(LocalDateTime.parse("2030-02-02T19:53:19.363129"));
     }
 
-//    @BeforeEach
-//    public void setUp() {
-//        applicationContext.getBeansOfType(Formatter.class).values().forEach(conversionService::addFormatter);
-//
-//        MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new
-//                MappingJackson2HttpMessageConverter();
-//        mappingJackson2HttpMessageConverter.setObjectMapper(getMapper());
-//
-//
-//        mvc = MockMvcBuilders.standaloneSetup(controller)
-//                .setControllerAdvice(exceptionApiHandler)
-//                .setConversionService(conversionService)
-//                .setMessageConverters(mappingJackson2HttpMessageConverter)
-//                .build();
-//    }
+    @BeforeEach
+    public void setUpConfForDataTimeFormat() {
+        applicationContext.getBeansOfType(Formatter.class).values().forEach(conversionService::addFormatter);
 
-    private static ObjectMapper getMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return objectMapper;
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
+        mappingJackson2HttpMessageConverter.setObjectMapper(mapper);
+
+        mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(exceptionApiHandler)
+                .setConversionService(conversionService)
+                .setMessageConverters(mappingJackson2HttpMessageConverter)
+                .build();
     }
 
     @Test
-    void createBooking() throws Exception {
+    void createBookingOrder_whenValidRequest_thenOkAndReturnTheBooking() throws Exception {
         Mockito.when(bookingService.createBookingOrder(Mockito.any(), Mockito.anyLong()))
                 .thenReturn(bookingOrderResponse);
-        mapper.registerModule(new JavaTimeModule());
-        mvc.perform(MockMvcRequestBuilders
-                        .post("/bookings")
+
+        mvc.perform(MockMvcRequestBuilders.post("/bookings")
                         .content(mapper.writeValueAsString(bookingCreateRequest))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .header("X-Sharer-User-Id", 3)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                ).andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id", is(1)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status", is(BookingStatus.WAITING.getApiValue())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.item.name", is("cycle")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.item.id", is(2)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.booker.id", is(3)));
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.status", is(BookingStatus.WAITING.getApiValue())))
+                .andExpect(jsonPath("$.item.name", is("cycle")))
+                .andExpect(jsonPath("$.item.id", is(2)))
+                .andExpect(jsonPath("$.start", is("2030-01-31T19:53:19.363093")))
+                .andExpect(jsonPath("$.start", is("2030-01-31T19:53:19.363093")))
+                .andExpect(jsonPath("$.booker.id", is(3)));
     }
 }

@@ -37,16 +37,14 @@ public class ItemController {
     private static final String USER_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemDto createItem(@RequestHeader(USER_HEADER) Long ownerId,
-                              @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto createItem(@RequestHeader(USER_HEADER) Long ownerId, @Valid @RequestBody ItemDto itemDto) {
         Item item = itemMapper.dtoToItem(itemDto);
         Item createdItem = itemService.createItem(item, ownerId);
         return itemMapper.itemToDto(createdItem);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader(USER_HEADER) Long userId,
-                              @PathVariable Long itemId,
+    public ItemDto updateItem(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId,
                               @RequestBody ItemDto itemDto) {
         Item updatedData = itemMapper.dtoToItem(itemDto);
         updatedData.setId(itemId);
@@ -55,8 +53,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public GetAllItemsForOwnerResponseDto getItem(@RequestHeader(USER_HEADER) Long userId,
-                                                  @PathVariable Long itemId) {
+    public GetAllItemsForOwnerResponseDto getItem(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId) {
         Item item = itemService.getItemWithUserAccess(itemId, userId);
         GetAllItemsForOwnerResponseDto response = itemMapper.itemToDtoWithBookingInfo(item);
         if (userId.equals(item.getOwner().getId())) {
@@ -65,35 +62,25 @@ public class ItemController {
         }
 
         List<Comment> comments = itemService.getComment(itemId);
-        response.setComments(comments.stream()
-                .map(itemMapper::commentToDto)
-                .collect(Collectors.toList())
-        );
+        response.setComments(comments.stream().map(itemMapper::commentToDto).collect(Collectors.toList()));
         return response;
     }
 
     @GetMapping
     public List<GetAllItemsForOwnerResponseDto> getOwnersItems(@RequestHeader(USER_HEADER) Long userId) {
-        return itemService.getOwnersItems(userId).stream()
-                .map(itemMapper::itemToDtoWithBookingInfo)
-                .peek(it -> {
-                    it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
-                    it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
-                })
-                .collect(Collectors.toList());
+        return itemService.getOwnersItems(userId).stream().map(itemMapper::itemToDtoWithBookingInfo).peek(it -> {
+            it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
+            it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
+        }).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam String text) {
-        return itemService.findAllWithText(text).stream()
-                .map(itemMapper::itemToDto)
-                .collect(Collectors.toList());
+        return itemService.findAllWithText(text).stream().map(itemMapper::itemToDto).collect(Collectors.toList());
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId,
-                                 @PathVariable Long itemId,
-                                 @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
+    public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId, @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
         Comment comment = itemService.addComment(userId, itemId, text.get("text"));
         return itemMapper.commentToDto(comment);
     }

@@ -10,6 +10,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 @JsonTest
 public class ItemJsonTest {
@@ -27,7 +29,7 @@ public class ItemJsonTest {
 
         JsonContent<ItemDto> result = jackson.write(dto);
 
-        Assertions.assertEquals(result.getJson(),
+        assertEquals(result.getJson(),
                 "{\"id\":1,\"name\":\"cycle\",\"description\":\"new sport cycle\",\"available\":true}");
     }
 
@@ -36,9 +38,9 @@ public class ItemJsonTest {
         String content = "{\"id\":2,\"name\":\"cycle\",\"description\":\"new sport cycle\",\"available\":true}";
         ItemDto parsedDto = jackson.parseObject(content);
 
-        Assertions.assertEquals(parsedDto.getId(), 2);
-        Assertions.assertEquals(parsedDto.getName(), "cycle");
-        Assertions.assertEquals(parsedDto.getDescription(), "new sport cycle");
+        assertEquals(parsedDto.getId(), 2);
+        assertEquals(parsedDto.getName(), "cycle");
+        assertEquals(parsedDto.getDescription(), "new sport cycle");
         Assertions.assertTrue(parsedDto.getIsAvailable());
     }
 }
