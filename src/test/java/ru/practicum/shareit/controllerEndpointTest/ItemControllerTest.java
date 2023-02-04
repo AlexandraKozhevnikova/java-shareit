@@ -13,9 +13,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.ItemController;
 import ru.practicum.shareit.item.ItemService;
-import ru.practicum.shareit.item.dto.GetAllItemsForOwnerResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemWithOptionalBookingResponseDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -124,7 +125,7 @@ public class ItemControllerTest {
 
     @Test
     void getItem_whenItemWithoutCommentAndGetByNotOwner() throws Exception {
-        GetAllItemsForOwnerResponseDto getAllDto = new GetAllItemsForOwnerResponseDto();
+        ItemWithOptionalBookingResponseDto getAllDto = new ItemWithOptionalBookingResponseDto();
         getAllDto.setId(1L);
         getAllDto.setName("book");
         getAllDto.setDescription("about java");
@@ -138,7 +139,8 @@ public class ItemControllerTest {
         mvc.perform(MockMvcRequestBuilders
                         .get("/items/{itemId}", 1)
                         .header("X-Sharer-User-Id", 2))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(print());
 
         verify(itemService, times(1))
                 .getItemWithUserAccess(1L, 2L);
@@ -151,6 +153,41 @@ public class ItemControllerTest {
 
     }
 
-    //todo  закончила здесь
+    @Test
+    void addComment_whenTextNull_Return() throws Exception {
+        doThrow(IllegalArgumentException.class)
+                .when(itemService).addComment(anyLong(), anyLong(), any());
+
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/items/{itemId}/comment", 4)
+                        .header("X-Sharer-User-Id", 2)
+                        .content("{ \"text\": null }")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorInfo.type")
+                        .value("validation"))
+                .andExpect(jsonPath("$.errorInfo.description")
+                        .value("object does not valid"));
+
+    }
+
+    @Test
+    void addComment_whenText_ReturnOK() throws Exception {
+
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/items/{itemId}/comment", 4)
+                        .header("X-Sharer-User-Id", 2)
+                        .content(" { \"text\" : \"some data\" } ")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+
+
+    }
 }
 

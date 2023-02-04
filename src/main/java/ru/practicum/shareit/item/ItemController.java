@@ -12,15 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.GetAllItemsForOwnerResponseDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemWithOptionalBookingResponseDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,9 +51,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public GetAllItemsForOwnerResponseDto getItem(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId) {
+    public ItemWithOptionalBookingResponseDto getItem(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId) {
         Item item = itemService.getItemWithUserAccess(itemId, userId);
-        GetAllItemsForOwnerResponseDto response = itemMapper.itemToDtoWithBookingInfo(item);
+        ItemWithOptionalBookingResponseDto response = itemMapper.itemToDtoWithBookingInfo(item);
         if (userId.equals(item.getOwner().getId())) {
             response.setNextBooking(bookingService.getNextBookingForItem(item.getId(), userId));
             response.setLastBooking(bookingService.getLastBookingForItem(item.getId(), userId));
@@ -69,15 +67,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<GetAllItemsForOwnerResponseDto> getOwnersItems(@RequestHeader(USER_HEADER) Long userId) {
-        return itemService.getOwnersItems(userId).stream().map(itemMapper::itemToDtoWithBookingInfo).peek(it -> {
-            it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
-            it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
-        }).collect(Collectors.toList());
+    public List<ItemWithOptionalBookingResponseDto> getOwnersItems(@RequestHeader(USER_HEADER) Long userId) {
+        return itemService.getOwnersItems(userId).stream()
+                .map(itemMapper::itemToDtoWithBookingInfo)
+                .peek(it -> {
+                    it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
+                    it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam String text) {
+    public List<ItemDto> searchItem(@RequestParam String text,
+                                    @RequestHeader(USER_HEADER) Long userId) {
         return itemService.findAllWithText(text).stream()
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());
@@ -85,7 +87,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader(USER_HEADER) Long userId, @PathVariable Long itemId,
-                                 @RequestBody @Valid @NotEmpty @NotNull Map<String, String> text) {
+                                 @RequestBody Map<String, String> text) {
         Comment comment = itemService.addComment(userId, itemId, text.get("text"));
         return itemMapper.commentToDto(comment);
     }

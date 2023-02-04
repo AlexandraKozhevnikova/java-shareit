@@ -15,7 +15,7 @@ public interface ItemMapper {
     ItemDto itemToDto(Item item);
 
     @Mapping(target = "name", source = "title")
-    GetAllItemsForOwnerResponseDto itemToDtoWithBookingInfo(Item item);
+    ItemWithOptionalBookingResponseDto itemToDtoWithBookingInfo(Item item);
 
     @Mapping(target = "authorName", source = "user.name")
     CommentDto commentToDto(Comment comment);
