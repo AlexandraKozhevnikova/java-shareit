@@ -5,16 +5,14 @@ import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.RandomUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -23,9 +21,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
-@SpringBootTest //может тут каждый тест новые данные чтобы не пересекались
+@SpringBootTest
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class ShareItTests {
 
     private static final String HOST = "http://localhost:8080";
@@ -38,19 +37,11 @@ class ShareItTests {
         SpringApplication.run(ShareItApp.class);
     }
 
-    @BeforeEach
-    private void clear() {
-
-
-    }
-
     @Test
     void contextLoads() {
     }
 
     @Test
-    @Transactional
-    @Rollback(value = true)
     void createUser_whenUserValid_thenReturnOkWithUser() {
         given().log().all()
                 .when().get(USERS)
