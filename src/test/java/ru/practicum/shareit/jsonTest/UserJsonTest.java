@@ -20,7 +20,7 @@ public class UserJsonTest {
     @Test
     void serializeTest() throws IOException {
         UserDto dto = new UserDto();
-        dto.setId(1);
+        dto.setId(1L);
         dto.setEmail("randomUtils@ya.ru");
         dto.setName("Antony");
 

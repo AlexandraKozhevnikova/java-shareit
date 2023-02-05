@@ -82,7 +82,7 @@ public class BookingService {
             booking.setStatus(REJECTED);
         }
 
-        BookingOrder savedBooking = bookingRepository.saveAndFlush(booking);
+        BookingOrder savedBooking = bookingRepository.save(booking);
 
         return bookingMapping.entityToDto(savedBooking);
     }

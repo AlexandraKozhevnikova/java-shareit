@@ -65,7 +65,7 @@ public class BookingOrderControllerTest {
     void setUpData() {
 
         userDto = new UserDto();
-        userDto.setId(3);
+        userDto.setId(3L);
         userDto.setEmail("randomUtils@ya.ru");
         userDto.setName("Antony");
 

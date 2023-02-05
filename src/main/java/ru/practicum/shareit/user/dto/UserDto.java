@@ -13,7 +13,7 @@ import javax.validation.constraints.Null;
 @Setter
 public class UserDto {
     @Null
-    private Integer id;
+    private Long id;
     @NotBlank(message = "'name' must not be blank", groups = CreateUser.class)
     private String name;
     @Email
