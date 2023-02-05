@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingOrderControllerUnitTest {
-
     @InjectMocks
     private BookingOrderController bookingOrderController;
     @Mock

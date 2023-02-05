@@ -31,6 +31,8 @@ class ShareItTests {
     private static final String USERS = "/users";
     private static final String ITEM = "/items";
     private static final String BOOKING = "/bookings";
+    public static final String REQUEST = "/requests";
+
 
     @BeforeAll
     private static void run() {
@@ -98,7 +100,7 @@ class ShareItTests {
     }
 
     @Test
-    void getOwnersItems_whenItemGetByOwner_thenReturnItemInfo() throws Exception {
+    void getOwnersItems_whenItemGetByOwner_thenReturnItemInfo() {
         doDataPreparation_createUser();
         doDataPreparation_createUser();
         doDataPreparation_createItem();
@@ -121,7 +123,7 @@ class ShareItTests {
     }
 
     @Test
-    void searchItem_whenItemsMatch_thenReturnListItems() throws Exception {
+    void searchItem_whenItemsMatch_thenReturnListItems() {
         doDataPreparation_createUser();
         doDataPreparation_createItem();
         doDataPreparation_createItem();
@@ -137,6 +139,53 @@ class ShareItTests {
                 .body("[0].name", is("Дрель"))
                 .body("[0].description", is("Простая дрель"))
                 .body("[0].available", is(true));
+    }
+
+    @Test
+    void createItemRequest_whenEmptyBody_then400() {
+        doDataPreparation_createUser();
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{ }")
+                .header("X-Sharer-User-Id", 1)
+                .when().post(HOST + REQUEST)
+                .then().log().all()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("error", is("'text' must not be blank"))
+                .body("errorInfo.type", is("validation"));
+    }
+
+    @Test
+    void createItemRequest_whenDescriptionIsNull_then400() {
+        doDataPreparation_createUser();
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n" +
+                        "    \"description\": null \n" +
+                        "}")
+                .header("X-Sharer-User-Id", 1)
+                .when().post(HOST + REQUEST)
+                .then().log().all()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("error", is("'text' must not be blank"))
+                .body("errorInfo.type", is("validation"));
+    }
+
+    @Test
+    void createItemRequest_whenUserNotExist_then404() {
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n" +
+                        "    \"description\": \"some abc\" \n" +
+                        "}")
+                .header("X-Sharer-User-Id", 1)
+                .when().post(HOST + REQUEST)
+                .then().log().all()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body("error", is("Пользователя с 'id' = 1 не существует"))
+                .body("errorInfo.type", is("logic"));
     }
 
     private void doDataPreparation_createUser() {
@@ -185,7 +234,7 @@ class ShareItTests {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    void doDataPreparation_addComment(long userId) {
+    private void doDataPreparation_addComment(long userId) {
         given().log().all()
                 .contentType(ContentType.JSON)
                 .body(" {\n" +
