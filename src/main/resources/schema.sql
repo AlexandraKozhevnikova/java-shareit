@@ -61,3 +61,7 @@ CREATE TABLE IF NOT EXISTS item_request (
 
     CONSTRAINT description_not_empty CHECK ( description NOT LIKE ' ' AND description NOT LIKE '' )
 );
+
+
+ALTER TABLE item
+    ADD item_request_id BIGINT REFERENCES item (id) ON DELETE SET NULL;

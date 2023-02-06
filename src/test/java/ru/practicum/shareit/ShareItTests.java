@@ -15,8 +15,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static io.restassured.RestAssured.given;
+import static org.exparity.hamcrest.date.LocalDateTimeMatchers.within;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -75,12 +80,12 @@ class ShareItTests {
     void getItem_whenItemWithCommentAndGetByOwner_thenReturnFullItemInfo() throws Exception {
         doDataPreparation_createUser();
         doDataPreparation_createUser();
-        doDataPreparation_createItem();
+        doDataPreparation_createItem(null, 1L);
         doDataPreparation_createBooking(2L, 1L, LocalDateTime.now().plusSeconds(1L));
         doDataPreparation_createBooking(2L, 1L, LocalDateTime.parse("2040-01-31T19:53:19.363093"));
 
         Thread.sleep(3000L); //чтобы бронирование стало прошедшим
-        doDataPreparation_addComment(2);
+        doDataPreparation_createComment(2);
 
         given().log().all()
                 .pathParam("itemId", 1)
@@ -103,7 +108,7 @@ class ShareItTests {
     void getOwnersItems_whenItemGetByOwner_thenReturnItemInfo() {
         doDataPreparation_createUser();
         doDataPreparation_createUser();
-        doDataPreparation_createItem();
+        doDataPreparation_createItem(null, 1L);
         doDataPreparation_createBooking(2L, 1L, LocalDateTime.parse("2040-01-31T19:53:19.363093"));
 
         given().log().all()
@@ -125,8 +130,8 @@ class ShareItTests {
     @Test
     void searchItem_whenItemsMatch_thenReturnListItems() {
         doDataPreparation_createUser();
-        doDataPreparation_createItem();
-        doDataPreparation_createItem();
+        doDataPreparation_createItem(null, 1L);
+        doDataPreparation_createItem(null, 1L);
 
         given().log().all()
                 .header("X-Sharer-User-Id", 1)
@@ -188,6 +193,65 @@ class ShareItTests {
                 .body("errorInfo.type", is("logic"));
     }
 
+    @Test
+    void getItemRequestById_whenRequestIdIsNotLong_then404() {
+        given().log().all()
+                .pathParam("requestId", "abc")
+                .header("X-Sharer-User-Id", 1)
+                .when().get(REQUEST + "/{requestId}")
+                .then().log().all()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .body("error", containsString("Failed to convert value of type"))
+                .body("errorInfo.type", is("common"));
+    }
+
+    @Test
+    void getItemRequest_whenItemOfferIsExist_thenReturnResponseWithItems() {
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItem(1L, 2L);
+
+        String created = given().log().all()
+                .pathParam("requestId", 1)
+                .header("X-Sharer-User-Id", 1)
+                .when().get(REQUEST + "/{requestId}")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("id", is(1))
+                .body("description", is("что-то для сверления стен"))
+                .body("items", hasSize(1))
+                .body("items[0].id", is(1))
+                .body("items[0].name", is("Дрель"))
+                .body("items[0].description", is("Простая дрель"))
+                .body("items[0].requestId", is(1))
+                .body("items[0].available", is(true))
+                .extract().body().path("created");
+
+        assertThat(LocalDateTime.parse(created), within(13, ChronoUnit.HOURS, LocalDateTime.now()));
+    }
+
+    @Test
+    void getItemRequest_whenItemOfferIsNotExist() {
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItem(null, 2L);
+
+        String created = given().log().all()
+                .pathParam("requestId", 1)
+                .header("X-Sharer-User-Id", 1)
+                .when().get(REQUEST + "/{requestId}")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("id", is(1))
+                .body("description", is("что-то для сверления стен"))
+                .body("items", emptyIterable())
+                .extract().body().path("created");
+
+        assertThat(LocalDateTime.parse(created), within(13, ChronoUnit.HOURS, LocalDateTime.now()));
+    }
+
     private void doDataPreparation_createUser() {
         given().log().all()
                 .contentType(ContentType.JSON)
@@ -198,15 +262,16 @@ class ShareItTests {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    private void doDataPreparation_createItem() {
+    private void doDataPreparation_createItem(Long requestId, long ownerId) {
         given().log().all()
                 .contentType(ContentType.JSON)
                 .body("{\n" +
                         "    \"name\": \"Дрель\",\n" +
                         "    \"description\": \"Простая дрель\",\n" +
-                        "    \"available\": true\n" +
+                        "    \"available\": true, \n" +
+                        "    \"requestId\":" + requestId +
                         "}")
-                .header("X-Sharer-User-Id", 1)
+                .header("X-Sharer-User-Id", ownerId)
                 .when().post(HOST + ITEM)
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value());
@@ -234,7 +299,7 @@ class ShareItTests {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    private void doDataPreparation_addComment(long userId) {
+    private void doDataPreparation_createComment(long userId) {
         given().log().all()
                 .contentType(ContentType.JSON)
                 .body(" {\n" +
@@ -246,4 +311,20 @@ class ShareItTests {
                 .then().log().all()
                 .statusCode(HttpStatus.OK.value());
     }
+
+    private void doDataPreparation_createItemRequest(long userId) {
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n" +
+                        "    \"description\": \"что-то для сверления стен\" \n" +
+                        "}")
+                .header("X-Sharer-User-Id", userId)
+                .when().post(HOST + REQUEST)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+    }
+
 }
+
+
+//TODO  штуки с удалением каскад или сет нал

@@ -1,27 +1,29 @@
 package ru.practicum.shareit.controllerEndpointTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.ItemController;
 import ru.practicum.shareit.item.ItemService;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemMapperImpl;
 import ru.practicum.shareit.item.dto.ItemWithOptionalBookingResponseDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
@@ -34,88 +36,100 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(ItemMapperImpl.class)
 @WebMvcTest(ItemController.class)
 public class ItemControllerTest {
     @Autowired
-    private ObjectMapper mapper;
-    @Autowired
     private MockMvc mvc;
-    @MockBean
+    @SpyBean
     private ItemMapper itemMapper;
     @MockBean
     private BookingService bookingService;
     @MockBean
     private ItemService itemService;
-    private ItemDto itemRequestDto;
-    private ItemDto itemResponseDto;
-    private Item itemRequest;
-    private Item itemResponse;
+    private Item persistItem;
 
     @BeforeEach
     void setUp() {
-        itemRequestDto = new ItemDto();
-        itemRequestDto.setName("cycle");
-        itemRequestDto.setDescription("new sport cycle");
-        itemRequestDto.setIsAvailable(true);
 
-        itemResponseDto = new ItemDto();
-        itemResponseDto.setId(1L);
-        itemResponseDto.setName("cycle");
-        itemResponseDto.setDescription("new sport cycle");
-        itemResponseDto.setIsAvailable(true);
-
-        itemRequest = new Item();
-        itemRequest.setTitle("cycle");
-        itemRequest.setDescription("new sport cycle");
-        itemRequest.setIsAvailable(true);
 
         User user = new User();
         user.setId(100L);
 
-        itemResponse = new Item();
-        itemResponse.setId(1L);
-        itemResponse.setTitle("cycle");
-        itemResponse.setDescription("new sport cycle");
-        itemResponse.setIsAvailable(true);
-        itemResponse.setOwner(user);
+        persistItem = new Item();
+        persistItem.setId(1L);
+        persistItem.setTitle("cycle");
+        persistItem.setDescription("new sport cycle");
+        persistItem.setIsAvailable(true);
+        persistItem.setOwner(user);
     }
 
     @Test
-    void createItem_whenRequestValid_thenReturnNewUser() throws Exception {
-        doReturn(itemRequest)
-                .when(itemMapper).dtoToItem(isA(ItemDto.class));
-        doReturn(itemResponse)
+    void createItem_whenRequestValidWithoutItemRequestId_thenReturnNewItem() throws Exception {
+        doReturn(persistItem)
                 .when(itemService).createItem(isA(Item.class), anyLong());
-        doReturn(itemResponseDto)
-                .when(itemMapper).itemToDto(isA(Item.class));
 
-        String result = mvc.perform(MockMvcRequestBuilders
+        mvc.perform(MockMvcRequestBuilders
                         .post("/items")
                         .header("X-Sharer-User-Id", 2)
                         .contentType("application/json")
-                        .content(mapper.writeValueAsString(itemRequestDto))
+                        .content("{" +
+                                "\"name\":\"cycle\"," +
+                                "\"description\":\"new sport cycle\"," +
+                                "\"requestId\":null," +
+                                "\"available\":true " +
+                                "}")
                 ).andDo(print())
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andExpect(jsonPath("id").value(1))
+                .andExpect(jsonPath("name").value("cycle"))
+                .andExpect(jsonPath("description").value("new sport cycle"))
+                .andExpect(jsonPath("requestId").value(nullValue()))
+                .andExpect(jsonPath("available").value(true));
+    }
 
-        Assertions.assertEquals(mapper.writeValueAsString(itemResponseDto), result);
+    @Test
+    void createItem_whenRequestValidWithItemRequestId_thenReturnNewItem() throws Exception {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(7777L);
+
+        persistItem.setItemRequest(itemRequest);
+        doReturn(persistItem)
+                .when(itemService).createItem(isA(Item.class), anyLong());
+
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/items")
+                        .header("X-Sharer-User-Id", 2)
+                        .contentType("application/json")
+                        .content("{" +
+                                "\"name\":\"cycle\"," +
+                                "\"description\":\"new sport cycle\"," +
+                                "\"requestId\":7777," +
+                                "\"available\":true " +
+                                "}")
+                ).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(1))
+                .andExpect(jsonPath("name").value("cycle"))
+                .andExpect(jsonPath("description").value("new sport cycle"))
+                .andExpect(jsonPath("requestId").value(7777L))
+                .andExpect(jsonPath("available").value(true));
     }
 
     @Test
     void updateItem_whenValidRequest_thenReturnOkAndItem() throws Exception {
-        doReturn(itemRequest)
-                .when(itemMapper).dtoToItem(isA(ItemDto.class));
-        doReturn(itemResponse)
+        doReturn(persistItem)
                 .when(itemService).updateItem(isA(Item.class), anyLong());
-        doReturn(itemResponseDto)
-                .when(itemMapper).itemToDto(isA(Item.class));
 
         mvc.perform(MockMvcRequestBuilders
                         .patch("/items/{itemId}", 4)
                         .header("X-Sharer-User-Id", 2)
-                        .content(mapper.writeValueAsString(itemRequestDto))
+                        .content("{" +
+                                "\"name\":\"cycle\"," +
+                                "\"description\":\"new sport cycle\"," +
+                                "\"requestId\":null," +
+                                "\"available\":true " +
+                                "}")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -131,10 +145,8 @@ public class ItemControllerTest {
         getAllDto.setDescription("about java");
         getAllDto.setIsAvailable(true);
 
-        doReturn(itemResponse)
+        doReturn(persistItem)
                 .when(itemService).getItemWithUserAccess(anyLong(), anyLong());
-        doReturn(getAllDto)
-                .when(itemMapper).itemToDtoWithBookingInfo(any(Item.class));
 
         mvc.perform(MockMvcRequestBuilders
                         .get("/items/{itemId}", 1)
@@ -144,8 +156,6 @@ public class ItemControllerTest {
 
         verify(itemService, times(1))
                 .getItemWithUserAccess(1L, 2L);
-        verify(itemMapper, times(1))
-                .itemToDtoWithBookingInfo(itemResponse);
         verify(bookingService, never())
                 .getNextBookingForItem(anyLong(), anyLong());
         verify(bookingService, never())
@@ -176,7 +186,6 @@ public class ItemControllerTest {
 
     @Test
     void addComment_whenText_ReturnOK() throws Exception {
-
         mvc.perform(MockMvcRequestBuilders
                         .post("/items/{itemId}/comment", 4)
                         .header("X-Sharer-User-Id", 2)
@@ -186,8 +195,6 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
-
-
     }
 }
 

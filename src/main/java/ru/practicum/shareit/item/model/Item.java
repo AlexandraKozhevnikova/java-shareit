@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.Column;
@@ -32,6 +33,10 @@ public class Item {
     private User owner;
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable;
+    @ManyToOne
+    @JoinColumn(name = "item_request_id", nullable = true)
+    private ItemRequest itemRequest;
+
 
     @Override
     public boolean equals(Object o) {

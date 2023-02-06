@@ -19,4 +19,5 @@ public class ItemDto {
     @NotNull(message = "'available' must not be blank")
     @JsonProperty("available")
     private Boolean isAvailable;
+    private Long requestId;
 }

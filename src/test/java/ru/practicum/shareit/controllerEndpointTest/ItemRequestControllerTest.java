@@ -8,18 +8,23 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.request.ItemRequestController;
 import ru.practicum.shareit.request.ItemRequestService;
-import ru.practicum.shareit.request.dto.ItemRequestResponse;
+import ru.practicum.shareit.request.dto.ItemRequestCreateResponse;
+import ru.practicum.shareit.request.dto.ItemRequestGetResponse;
+import ru.practicum.shareit.user.UserService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 
 import static org.exparity.hamcrest.date.LocalDateTimeMatchers.within;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -36,11 +41,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ItemRequestControllerTest {
     @MockBean
     private ItemRequestService itemRequestService;
+    @MockBean
+    private UserService userService;
     @Autowired
     private MockMvc mvc;
-
     public static final String REQUEST = "/requests";
     private static final String USER_HEADER = "X-Sharer-User-Id";
+
 
     @Test
     void createItemRequest_whenWithoutUserHeader_then400MissingRequestHeaderException() throws Exception {
@@ -86,7 +93,7 @@ public class ItemRequestControllerTest {
 
     @Test
     void createItemRequest_whenRequestValid_thenOkAndReturnItemRequestDto() throws Exception {
-        ItemRequestResponse response = new ItemRequestResponse();
+        ItemRequestCreateResponse response = new ItemRequestCreateResponse();
         response.setId(1L);
         response.setDescription("новый смартфон");
         response.setCreated(LocalDateTime.now());
@@ -135,4 +142,47 @@ public class ItemRequestControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errorInfo.description", is("object does not valid")));
     }
+
+    @Test
+    void getItemRequestById_whenRequestValid_thenReturnItemRequest() throws Exception {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(11L);
+        itemDto.setName("cycle");
+        itemDto.setDescription("new sport cycle");
+        itemDto.setIsAvailable(true);
+        itemDto.setRequestId(5555L);
+
+        ItemRequestGetResponse response = new ItemRequestGetResponse();
+        response.setId(5555L);
+        response.setDescription("новый велосипед");
+        response.setCreated(LocalDateTime.of(2020, 2, 22, 2, 44));
+        response.setItemOfferDtoList(List.of(itemDto));
+
+        doReturn(response)
+                .when(itemRequestService).getItemRequest(anyLong());
+
+        mvc.perform(MockMvcRequestBuilders
+                        .get(REQUEST + "/{requestId}", 5555)
+                        .header(USER_HEADER, 1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(5555))
+                .andExpect(jsonPath("description").value("новый велосипед"))
+                .andExpect(jsonPath("created")
+                        .value("2020-02-22T02:44:00"))
+                .andExpect(jsonPath("items").value(hasSize(1)))
+                .andExpect(jsonPath("items.[0].id").value(11))
+                .andExpect(jsonPath("items.[0].name").value("cycle"))
+                .andExpect(jsonPath("items.[0].description").value("new sport cycle"))
+                .andExpect(jsonPath("items.[0].available").value(true))
+                .andExpect(jsonPath("items.[0].requestId").value(5555));
+
+        verify(userService, times(1))
+                .getUserById(1L);
+        verify(itemRequestService, times(1))
+                .getItemRequest(5555L);
+    }
+
+
 }

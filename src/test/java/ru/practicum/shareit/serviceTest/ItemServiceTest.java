@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,17 +13,24 @@ import ru.practicum.shareit.item.CommentRepository;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +43,10 @@ public class ItemServiceTest {
     private UserService userService;
     @Mock
     private CommentRepository commentRepository;
+    @Mock
+    private ItemRequestService itemRequestService;
+    @Captor
+    private ArgumentCaptor<Item> argumentCaptor;
 
     User userWithId;
     Item itemWithId;
@@ -149,5 +162,48 @@ public class ItemServiceTest {
 
         verify(commentRepository, never())
                 .save(any());
+    }
+
+    @Test
+    void createItem_whenRequestIdIsExist() {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(7777L);
+
+        Item interimItem = new Item();
+        interimItem.setTitle("cycle");
+        interimItem.setDescription("new sport cycle");
+        interimItem.setIsAvailable(true);
+        interimItem.setItemRequest(itemRequest);
+
+        User requestAuthor = new User();
+        requestAuthor.setId(2L);
+
+        ItemRequest persistItemRequest = new ItemRequest();
+        persistItemRequest.setId(7777L);
+        persistItemRequest.setDescription("description");
+        persistItemRequest.setAuthor(requestAuthor);
+        persistItemRequest.setCreated(LocalDateTime.of(2020, 2, 22, 2, 44));
+
+        doReturn(userWithId)
+                .when(userService).getUserById(anyLong());
+        doReturn(persistItemRequest)
+                .when(itemRequestService).checkItemRequestIsExist(anyLong());
+
+        itemService.createItem(interimItem, 6L);
+
+        verify(userService, times(1))
+                .getUserById(6L);
+        verify(itemRequestService, times(1))
+                .checkItemRequestIsExist(7777L);
+        verify(itemRepository).save(argumentCaptor.capture());
+        Item result = argumentCaptor.getValue();
+
+        assertNull(result.getId());
+        assertEquals("cycle", result.getTitle());
+        assertEquals("new sport cycle", result.getDescription());
+        assertTrue(result.getIsAvailable());
+        assertEquals(7777L, result.getItemRequest().getId());
+        assertEquals("description", result.getItemRequest().getDescription());
+        assertEquals(6L, result.getOwner().getId());
     }
 }

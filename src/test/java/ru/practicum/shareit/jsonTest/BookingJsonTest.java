@@ -51,10 +51,11 @@ public class BookingJsonTest {
 
         JsonContent<BookingOrderResponse> result = jacksonResponse.write(dto);
 
-        Assertions.assertEquals("{\"id\":1,\"item\":{\"id\":1,\"name\":\"cycle\",\"description\":" +
-                        "\"new sport cycle\",\"available\":true},\"status\":\"APPROVED\"," +
-                        "\"start\":\"2030-01-31T19:53:19.363093\",\"end\":\"2030-02-02T19:53:19.363129\"," +
-                        "\"booker\":{\"id\":1,\"name\":\"Antony\",\"email\":\"randomUtils@ya.ru\"}}",
+        Assertions.assertEquals("{\"id\":1,\"item\":{\"id\":1,\"name\":\"cycle\"," +
+                        "\"description\":\"new sport cycle\",\"requestId\":null,\"available\":true}," +
+                        "\"status\":\"APPROVED\",\"start\":\"2030-01-31T19:53:19.363093\"," +
+                        "\"end\":\"2030-02-02T19:53:19.363129\",\"booker\":{\"id\":1,\"name\":\"Antony\"," +
+                        "\"email\":\"randomUtils@ya.ru\"}}",
                 result.getJson());
     }
 

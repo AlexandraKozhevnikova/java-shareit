@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.request.ItemRequestController;
 import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.user.UserService;
 
 import java.util.Map;
 
@@ -19,6 +20,8 @@ public class ItemRequestControllerUnitTest {
     private ItemRequestController itemRequestController;
     @Mock
     private ItemRequestService itemRequestService;
+    @Mock
+    private UserService userService;
 
     @Test
     void createItemRequest_whenValidRequest_thenReturnNewItemRequest() {
@@ -26,5 +29,15 @@ public class ItemRequestControllerUnitTest {
 
         verify(itemRequestService, times(1))
                 .createItemRequest(1L, Map.of("description", "new phone"));
+    }
+
+    @Test
+    void getItemRequestById_whenValidRequest_thenReturnItemRequest() {
+        itemRequestController.getItemRequestById(1L, 4444L);
+
+        verify(userService, times(1))
+                .getUserById(1L);
+        verify(itemRequestService, times(1))
+                .getItemRequest(4444L);
     }
 }
