@@ -88,7 +88,7 @@ public class ItemRequestServiceTest {
         doReturn(List.of(itemDto))
                 .when(itemService).getItemsByRequestId(anyLong());
 
-        ItemRequestGetResponse result = itemRequestService.getItemRequest(6666L);
+        ItemRequestGetResponse result = itemRequestService.getItemRequestById(6666L);
 
         assertEquals(6666L, result.getId());
         assertEquals("lorem ipsum", result.getDescription());

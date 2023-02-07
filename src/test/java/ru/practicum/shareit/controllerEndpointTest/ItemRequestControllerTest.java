@@ -159,7 +159,7 @@ public class ItemRequestControllerTest {
         response.setItemOfferDtoList(List.of(itemDto));
 
         doReturn(response)
-                .when(itemRequestService).getItemRequest(anyLong());
+                .when(itemRequestService).getItemRequestById(anyLong());
 
         mvc.perform(MockMvcRequestBuilders
                         .get(REQUEST + "/{requestId}", 5555)
@@ -181,7 +181,48 @@ public class ItemRequestControllerTest {
         verify(userService, times(1))
                 .getUserById(1L);
         verify(itemRequestService, times(1))
-                .getItemRequest(5555L);
+                .getItemRequestById(5555L);
+    }
+
+    @Test
+    void getItemRequestByAuthor_whenRequestValid_thenReturnItemRequests() throws Exception {
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(11L);
+        itemDto.setName("cycle");
+        itemDto.setDescription("new sport cycle");
+        itemDto.setIsAvailable(true);
+        itemDto.setRequestId(5555L);
+
+        ItemRequestGetResponse response = new ItemRequestGetResponse();
+        response.setId(5555L);
+        response.setDescription("новый велосипед");
+        response.setCreated(LocalDateTime.of(2020, 2, 22, 2, 44));
+        response.setItemOfferDtoList(List.of(itemDto));
+
+        doReturn(List.of(response))
+                .when(itemRequestService).getItemRequestByAuthor(anyLong());
+
+        mvc.perform(MockMvcRequestBuilders
+                        .get(REQUEST)
+                        .header(USER_HEADER, 1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("[0].id").value(5555))
+                .andExpect(jsonPath("[0].description").value("новый велосипед"))
+                .andExpect(jsonPath("[0].created")
+                        .value("2020-02-22T02:44:00"))
+                .andExpect(jsonPath("[0].items").value(hasSize(1)))
+                .andExpect(jsonPath("[0].items.[0].id").value(11))
+                .andExpect(jsonPath("[0].items.[0].name").value("cycle"))
+                .andExpect(jsonPath("[0].items.[0].description").value("new sport cycle"))
+                .andExpect(jsonPath("[0].items.[0].available").value(true))
+                .andExpect(jsonPath("[0].items.[0].requestId").value(5555));
+
+        verify(userService, times(1))
+                .getUserById(1L);
+        verify(itemRequestService, times(1))
+                .getItemRequestByAuthor(1L);
     }
 
 

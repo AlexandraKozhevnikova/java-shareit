@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
@@ -46,6 +47,7 @@ public class ItemService {
         this.itemRequestService = itemRequestService;
     }
 
+    @Transactional()
     public Item createItem(Item item, long ownerId) {
         User owner = userService.getUserById(ownerId);
         if (item.getItemRequest() != null) {
@@ -56,6 +58,7 @@ public class ItemService {
         return itemRepository.save(item);
     }
 
+    @Transactional
     public Item updateItem(Item updatedData, long userId) {
         User user = userService.getUserById(userId);
         updatedData.setOwner(user);
@@ -77,16 +80,19 @@ public class ItemService {
         return itemRepository.save(itemFromRep);
     }
 
+    @Transactional(readOnly = true)
     public Item getItemWithUserAccess(long itemId, long userId) {
         userService.getUserById(userId);
         return checkItemIsExistInRep(itemId);
     }
 
+    @Transactional(readOnly = true)
     public List<Item> getOwnersItems(long userId) {
         userService.getUserById(userId);
         return itemRepository.findAllByOwnerIdOrderById(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Item> findAllWithText(String text) {
         BooleanExpression isAvailable = QItem.item.isAvailable.isTrue();
         BooleanExpression titleContains = QItem.item.title.containsIgnoreCase(text);
@@ -110,6 +116,7 @@ public class ItemService {
         return itemFromRep;
     }
 
+    @Transactional
     public Comment addComment(Long userId, Long itemId, String text) {
         if (StringUtils.isBlank(text)) {
             throw new IllegalArgumentException("text must not be blank");
@@ -120,12 +127,14 @@ public class ItemService {
         return commentRepository.save(comment);
     }
 
+    @Transactional(readOnly = true)
     public List<Comment> getComment(Long itemId) {
         return (List<Comment>) commentRepository.findAll(
                 QComment.comment.item.id.eq(itemId),
                 new QSort(QComment.comment.created.desc()));
     }
 
+    @Transactional(readOnly = true)
     public List<ItemDto> getItemsByRequestId(Long requestId) {
         List<Item> items = (List<Item>) itemRepository.findAll(QItem.item.itemRequest.id.eq(requestId),
                 new QSort(QItem.item.itemRequest.created.desc()));

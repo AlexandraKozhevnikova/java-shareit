@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS item_request;
-
 DROP TABLE IF EXISTS comment;
 
 DROP TABLE IF EXISTS booking_order;
 
 DROP TABLE IF EXISTS item;
+
+DROP TABLE IF EXISTS item_request;
 
 DROP TABLE IF EXISTS user_share_it;
 
@@ -64,4 +64,4 @@ CREATE TABLE IF NOT EXISTS item_request (
 
 
 ALTER TABLE item
-    ADD item_request_id BIGINT REFERENCES item (id) ON DELETE SET NULL;
+    ADD item_request_id BIGINT REFERENCES item_request (id) ON DELETE SET NULL;

@@ -12,6 +12,7 @@ import ru.practicum.shareit.request.dto.ItemRequestCreateResponse;
 import ru.practicum.shareit.request.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.user.UserService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,7 +34,13 @@ public class ItemRequestController {
     public ItemRequestGetResponse getItemRequestById(@RequestHeader(USER_HEADER) Long userId,
                                                      @PathVariable Long requestId) {
         userService.getUserById(userId);
-        return itemRequestService.getItemRequest(requestId);
+        return itemRequestService.getItemRequestById(requestId);
+    }
+
+    @GetMapping
+    public List<ItemRequestGetResponse> getItemRequestByAuthor(@RequestHeader(USER_HEADER) Long userId) {
+        userService.getUserById(userId);
+        return itemRequestService.getItemRequestByAuthor(userId);
     }
 
 

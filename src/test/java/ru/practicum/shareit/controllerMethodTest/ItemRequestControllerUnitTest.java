@@ -38,6 +38,6 @@ public class ItemRequestControllerUnitTest {
         verify(userService, times(1))
                 .getUserById(1L);
         verify(itemRequestService, times(1))
-                .getItemRequest(4444L);
+                .getItemRequestById(4444L);
     }
 }

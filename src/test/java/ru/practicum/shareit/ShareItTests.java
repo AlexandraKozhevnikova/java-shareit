@@ -1,5 +1,6 @@
 package ru.practicum.shareit;
 
+import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.RandomUtils;
@@ -13,9 +14,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.practicum.shareit.request.dto.ItemRequestGetResponse;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.exparity.hamcrest.date.LocalDateTimeMatchers.within;
@@ -250,6 +253,39 @@ class ShareItTests {
                 .extract().body().path("created");
 
         assertThat(LocalDateTime.parse(created), within(13, ChronoUnit.HOURS, LocalDateTime.now()));
+    }
+
+    @Test
+    void getItemRequestByAuthor_whenItemRequestAndItemOfferIsExist_thenReturnResponseWithItems() {
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(3L);
+        doDataPreparation_createItem(1L, 2L);
+        doDataPreparation_createItem(3L, 2L);
+        doDataPreparation_createItem(1L, 3L);
+        doDataPreparation_createItem(1L, 2L);
+        doDataPreparation_createItem(null, 3L);
+
+        List<ItemRequestGetResponse> list = given().log().all()
+                .header("X-Sharer-User-Id", 1)
+                .when().get(REQUEST)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract().as(new TypeRef<>() {
+                });
+
+        assertThat(list, hasSize(3));
+        assertThat(list.get(0).getItemOfferDtoList(), hasSize(1));
+        assertThat(list.get(1).getItemOfferDtoList(), emptyIterable());
+        assertThat(list.get(2).getItemOfferDtoList(), hasSize(3));
+        assertThat(list.get(2).getId(), is(1L));
+        assertThat(list.get(2).getItemOfferDtoList().get(0).getId(), is(1L));
+        assertThat(list.get(2).getItemOfferDtoList().get(1).getId(), is(3L));
+        assertThat(list.get(2).getItemOfferDtoList().get(2).getId(), is(4L));
     }
 
     private void doDataPreparation_createUser() {
