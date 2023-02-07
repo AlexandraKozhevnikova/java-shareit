@@ -1,6 +1,8 @@
 package ru.practicum.shareit.request;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,5 +64,16 @@ public class ItemRequestService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ItemRequestGetResponse> getAllOtherItemRequest(Long userId, Optional<Integer> from, Optional<Integer> size) {
+        Page<ItemRequest> itemRequests = itemRequestRepository.findAll(QItemRequest.itemRequest.author.id.ne(userId),
+                QPageRequest.of(from.orElse(0), size.orElse(100))
+                        .withSort(new QSort(QItemRequest.itemRequest.created.desc())));
+
+        return itemRequests.stream()
+                .map(itemRequestMapper::entityToGetDto)
+                .peek(it -> it.setItemOfferDtoList(itemService.getItemsByRequestId(it.getId())))
+                .collect(Collectors.toList());
+    }
 }
 

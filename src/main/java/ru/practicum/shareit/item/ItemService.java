@@ -4,6 +4,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,19 +91,22 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public List<Item> getOwnersItems(long userId) {
+    public Page<Item> getOwnersItems(long userId, Optional<Integer> from, Optional<Integer> size) {
         userService.getUserById(userId);
-        return itemRepository.findAllByOwnerIdOrderById(userId);
+        return itemRepository.findAll(QItem.item.owner.id.eq(userId),
+                PageRequest.of(from.orElse(0), size.orElse(100))
+                        .withSort(new QSort(QItem.item.id.asc())));
     }
 
     @Transactional(readOnly = true)
-    public List<Item> findAllWithText(String text) {
+    public Page<Item> findAllWithText(String text, Optional<Integer> from, Optional<Integer> size) {
         BooleanExpression isAvailable = QItem.item.isAvailable.isTrue();
         BooleanExpression titleContains = QItem.item.title.containsIgnoreCase(text);
         BooleanExpression descriptionContains = QItem.item.description.containsIgnoreCase(text);
 
-        return StringUtils.isBlank(text) ? Collections.EMPTY_LIST
-                : (List<Item>) itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains));
+        return StringUtils.isBlank(text) ? new PageImpl<Item>(Collections.EMPTY_LIST)
+                : itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains),
+                QPageRequest.of(from.orElse(0), size.orElse(100)));
     }
 
     public Item checkItemIsExistInRep(long id) {

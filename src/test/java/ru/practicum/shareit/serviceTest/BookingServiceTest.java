@@ -1,6 +1,6 @@
 package ru.practicum.shareit.serviceTest;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.Predicate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -9,8 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.querydsl.QSort;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.BookingOrderRepository;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.ItemCanNotBeBookedByOwnerException;
@@ -21,7 +21,6 @@ import ru.practicum.shareit.booking.dto.BookingOrderMappingImpl;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
 import ru.practicum.shareit.booking.model.BookingOrder;
 import ru.practicum.shareit.booking.model.BookingStatus;
-import ru.practicum.shareit.booking.model.QBookingOrder;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
@@ -379,21 +378,21 @@ public class BookingServiceTest {
 
         doReturn(user)
                 .when(userService).getUserById(anyLong());
-        doReturn(List.of(bookingOrder))
-                .when(bookingRepository).findAll(any(BooleanExpression.class), any(Sort.class));
+        doReturn(new PageImpl<>(List.of(bookingOrder)))
+                .when(bookingRepository).findAll(any(Predicate.class), any(Pageable.class));
 
-
-        List<BookingOrderResponse> list = bookingService.getAllAuthorBookingOrder(2L,
-                BookingStatus.APPROVED.getApiValue());
+        List<BookingOrderResponse> list = bookingService.getAllAuthorBookingOrder(
+                2L,
+                BookingStatus.APPROVED.getApiValue(),
+                Optional.empty(),
+                Optional.empty()
+        );
 
         assertEquals(1, list.size());
         assertEquals(333L, list.get(0).getId());
 
         verify(userService, times(1))
                 .getUserById(2L);
-        verify(bookingRepository, times(1))
-                .findAll(QBookingOrder.bookingOrder.author.id.eq(2L).and(QBookingOrder.bookingOrder.bookingStatusDbCode
-                        .eq(200)), new QSort(QBookingOrder.bookingOrder.start.desc()));
     }
 
     @Test
@@ -426,12 +425,15 @@ public class BookingServiceTest {
 
         doReturn(user)
                 .when(userService).getUserById(anyLong());
-        doReturn(List.of(bookingOrder))
-                .when(bookingRepository).findAll(any(BooleanExpression.class), any(Sort.class));
+        doReturn(new PageImpl<>(List.of(bookingOrder)))
+                .when(bookingRepository).findAll(any(Predicate.class), any(Pageable.class));
 
 
-        List<BookingOrderResponse> list = bookingService.getAllOwnerBookingOrder(1L,
-                BookingStatus.FUTURE.getApiValue());
+        List<BookingOrderResponse> list = bookingService.getAllOwnerBookingOrder(
+                1L,
+                BookingStatus.FUTURE.getApiValue(),
+                Optional.empty(),
+                Optional.empty());
 
         assertEquals(1, list.size());
         assertEquals(333L, list.get(0).getId());

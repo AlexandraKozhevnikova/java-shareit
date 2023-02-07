@@ -7,13 +7,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.request.dto.ItemRequestCreateResponse;
 import ru.practicum.shareit.request.dto.ItemRequestGetResponse;
 import ru.practicum.shareit.user.UserService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @AllArgsConstructor
@@ -41,6 +45,18 @@ public class ItemRequestController {
     public List<ItemRequestGetResponse> getItemRequestByAuthor(@RequestHeader(USER_HEADER) Long userId) {
         userService.getUserById(userId);
         return itemRequestService.getItemRequestByAuthor(userId);
+    }
+
+    @GetMapping("/all")
+    public List<ItemRequestGetResponse> getAllOtherItemRequest(@RequestHeader(USER_HEADER) Long userId,
+                                                               @PositiveOrZero
+                                                               @RequestParam(value = "from", required = false)
+                                                               Optional<Integer> from,
+                                                               @Positive
+                                                               @RequestParam(value = "size", required = false)
+                                                               Optional<Integer> size) {
+        userService.getUserById(userId);
+        return itemRequestService.getAllOtherItemRequest(userId, from, size);
     }
 
 

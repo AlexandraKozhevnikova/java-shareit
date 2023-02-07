@@ -288,6 +288,81 @@ class ShareItTests {
         assertThat(list.get(2).getItemOfferDtoList().get(2).getId(), is(4L));
     }
 
+    @Test
+    void getAllOtherItemRequest_whenItemRequestAndItemOfferIsExist_thenReturnResponseWithItems() {
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createUser();
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(1L);
+        doDataPreparation_createItemRequest(3L);
+        doDataPreparation_createItem(1L, 2L);
+        doDataPreparation_createItem(3L, 2L);
+        doDataPreparation_createItem(1L, 3L);
+        doDataPreparation_createItem(1L, 2L);
+        doDataPreparation_createItem(null, 3L);
+
+        List<ItemRequestGetResponse> listFromPageOne = given().log().all()
+                .header("X-Sharer-User-Id", 2)
+                .queryParam("from", 0)
+                .queryParam("size", 3)
+                .when().get(REQUEST + "/all")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract().as(new TypeRef<>() {
+                });
+
+        List<ItemRequestGetResponse> listFromPageTwo = given().log().all()
+                .header("X-Sharer-User-Id", 2)
+                .queryParam("from", 1)
+                .queryParam("size", 3)
+                .when().get(REQUEST + "/all")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .extract().as(new TypeRef<>() {
+                });
+
+        assertThat(listFromPageOne, hasSize(3));
+        assertThat(listFromPageOne.get(0).getId(), is(4L));
+        assertThat(listFromPageOne.get(0).getItemOfferDtoList(), emptyIterable());
+        assertThat(listFromPageOne.get(1).getId(), is(3L));
+        assertThat(listFromPageOne.get(1).getItemOfferDtoList(), hasSize(1));
+        assertThat(listFromPageOne.get(1).getItemOfferDtoList().get(0).getId(), is(2L));
+        assertThat(listFromPageOne.get(2).getId(), is(2L));
+        assertThat(listFromPageOne.get(2).getItemOfferDtoList(), emptyIterable());
+
+        assertThat(listFromPageTwo, hasSize(1));
+        assertThat(listFromPageTwo.get(0).getItemOfferDtoList(), hasSize(3));
+        assertThat(listFromPageTwo.get(0).getItemOfferDtoList().get(0).getId(), is(1L));
+        assertThat(listFromPageTwo.get(0).getItemOfferDtoList().get(1).getId(), is(3L));
+        assertThat(listFromPageTwo.get(0).getItemOfferDtoList().get(2).getId(), is(4L));
+
+    }
+
+    @Test
+    void getAllOtherItemRequest_whenFromIsLessThenZero_thenReturnException() {
+        doDataPreparation_createUser();
+        given().log().all()
+                .header("X-Sharer-User-Id", 1)
+                .queryParam("from", -1)
+                .queryParam("size", 3)
+                .when().get(REQUEST + "/all")
+                .then().log().all()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    void getAllOtherItemRequest_whenWithoutPages_thenReturnException() {
+        doDataPreparation_createUser();
+        given().log().all()
+                .header("X-Sharer-User-Id", 1)
+                .when().get(REQUEST + "/all")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value())
+                .body("", emptyIterable());
+    }
+
     private void doDataPreparation_createUser() {
         given().log().all()
                 .contentType(ContentType.JSON)
@@ -361,6 +436,3 @@ class ShareItTests {
     }
 
 }
-
-
-//TODO  штуки с удалением каскад или сет нал

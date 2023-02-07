@@ -19,8 +19,11 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -67,20 +70,31 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemWithOptionalBookingResponseDto> getOwnersItems(@RequestHeader(USER_HEADER) Long userId) {
-        return itemService.getOwnersItems(userId).stream()
+    public List<ItemWithOptionalBookingResponseDto> getOwnersItems(@RequestHeader(USER_HEADER) Long userId,
+                                                                   @PositiveOrZero
+                                                                   @RequestParam(value = "from", required = false)
+                                                                   Optional<Integer> from,
+                                                                   @Positive
+                                                                   @RequestParam(value = "size", required = false)
+                                                                   Optional<Integer> size) {
+        return itemService.getOwnersItems(userId, from, size).stream()
                 .map(itemMapper::itemToDtoWithBookingInfo)
                 .peek(it -> {
                     it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
                     it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
-                })
-                .collect(Collectors.toList());
+                }).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
     public List<ItemDto> searchItem(@RequestParam String text,
-                                    @RequestHeader(USER_HEADER) Long userId) {
-        return itemService.findAllWithText(text).stream()
+                                    @RequestHeader(USER_HEADER) Long userId,
+                                    @PositiveOrZero
+                                    @RequestParam(value = "from", required = false)
+                                    Optional<Integer> from,
+                                    @Positive
+                                    @RequestParam(value = "size", required = false)
+                                    Optional<Integer> size) {
+        return itemService.findAllWithText(text, from, size).stream()
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());
     }

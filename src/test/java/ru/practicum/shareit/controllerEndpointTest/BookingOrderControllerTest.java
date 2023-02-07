@@ -30,6 +30,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -255,7 +256,7 @@ public class BookingOrderControllerTest {
                 .andExpect(status().isOk());
 
         verify(bookingService, times(1))
-                .getAllAuthorBookingOrder(3L, "ALL");
+                .getAllAuthorBookingOrder(3L, "ALL", Optional.empty(), Optional.empty());
     }
 
     @Test
@@ -267,6 +268,6 @@ public class BookingOrderControllerTest {
                 .andExpect(status().isOk());
 
         verify(bookingService, times(1))
-                .getAllOwnerBookingOrder(3L, "ALL");
+                .getAllOwnerBookingOrder(3L, "ALL", Optional.empty(), Optional.empty());
     }
 }

@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +25,8 @@ import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
 import static ru.practicum.shareit.booking.model.BookingStatus.REJECTED;
@@ -106,27 +107,34 @@ public class BookingService {
 
 
     @Transactional(readOnly = true)
-    public List<BookingOrderResponse> getAllAuthorBookingOrder(Long authorId, String state) {
+    public List<BookingOrderResponse> getAllAuthorBookingOrder(
+            Long authorId,
+            String state,
+            Optional<Integer> from,
+            Optional<Integer> size) {
         userService.getUserById(authorId);
 
         BooleanExpression byStatus = getFilterByState(state);
         BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(authorId);
-        Iterable<BookingOrder> orders = bookingRepository.findAll(byAuthor.and(byStatus),
-                new QSort(QBookingOrder.bookingOrder.start.desc()));
 
-        return StreamSupport.stream(orders.spliterator(), false)
+        return bookingRepository.findAll(byAuthor.and(byStatus),
+                        QPageRequest.of(from.orElse(0), size.orElse(100)).withSort(
+                                new QSort(QBookingOrder.bookingOrder.start.desc()))
+                ).stream()
                 .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }
 
-    public List<BookingOrderResponse> getAllOwnerBookingOrder(Long ownerId, String state) {
+    public List<BookingOrderResponse> getAllOwnerBookingOrder(Long ownerId, String state,
+                                                              Optional<Integer> from,
+                                                              Optional<Integer> size) {
         userService.getUserById(ownerId);
         BooleanExpression byStatus = getFilterByState(state);
         BooleanExpression byOwner = QBookingOrder.bookingOrder.item.owner.id.eq(ownerId);
-        Iterable<BookingOrder> orders = bookingRepository.findAll(byOwner.and(byStatus),
-                new QSort(QBookingOrder.bookingOrder.start.desc()));
-
-        return StreamSupport.stream(orders.spliterator(), false)
+        return bookingRepository.findAll(byOwner.and(byStatus),
+                        QPageRequest.of(from.orElse(0), size.orElse(100))
+                                .withSort(new QSort(QBookingOrder.bookingOrder.start.desc()))
+                ).stream()
                 .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }

@@ -224,6 +224,4 @@ public class ItemRequestControllerTest {
         verify(itemRequestService, times(1))
                 .getItemRequestByAuthor(1L);
     }
-
-
 }
