@@ -363,6 +363,50 @@ class ShareItTests {
                 .body("", emptyIterable());
     }
 
+    @Test
+    void updateUser_whenRequestValid_thenReturnUser() {
+        doDataPreparation_createUser();
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n    \"name\": \"userUpd\"" +
+                        "\n}")
+                .pathParam("userId", 1)
+                .when().patch(HOST + USERS + "/{userId}")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    void updateUser_whenEmailIsDublicated_thenReturnExeption() {
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n    \"name\": \"user\",\n " +
+                        "   \"email\": \"user@user.com\"\n}")
+                .when().post(HOST + USERS)
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n    \"name\": \"user\",\n " +
+                        "   \"email\": \"user@user.com\"\n}")
+                .when().post(HOST + USERS)
+                .then().log().all()
+                .statusCode(HttpStatus.CONFLICT.value());
+    }
+
+    @Test
+    void createUser_whenNameIsNull_thenReturnException() {
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .body("{\n    \"name\": \"userUpd\"" +
+                        "\n}")
+                .when().post(HOST + USERS)
+                .then().log().all()
+                .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
     private void doDataPreparation_createUser() {
         given().log().all()
                 .contentType(ContentType.JSON)

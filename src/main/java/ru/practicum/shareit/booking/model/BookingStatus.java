@@ -49,16 +49,8 @@ public enum BookingStatus {
         return dbCode;
     }
 
-    public void setDbCode(int dbCode) {
-        this.dbCode = dbCode;
-    }
-
     public String getApiValue() {
         return apiValue;
-    }
-
-    public void setApiValue(String apiValue) {
-        this.apiValue = apiValue;
     }
 
     public static BookingStatus ofDbCode(int dbCode) {
