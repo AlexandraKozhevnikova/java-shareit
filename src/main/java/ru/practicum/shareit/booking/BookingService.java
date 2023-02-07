@@ -101,8 +101,8 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public BookingOrder getBookingById(long bookingId) {
-        return bookingRepository.findById(bookingId).orElseThrow(() ->
-                new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
     }
 
 
@@ -211,5 +211,6 @@ public class BookingService {
         }
         return order.getAuthor();
     }
+
 }
 

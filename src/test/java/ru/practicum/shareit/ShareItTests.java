@@ -378,7 +378,7 @@ class ShareItTests {
     }
 
     @Test
-    void updateUser_whenEmailIsDublicated_thenReturnExeption() {
+    void updateUser_whenEmailIsDuplicated_thenReturnException() {
         given().log().all()
                 .contentType(ContentType.JSON)
                 .body("{\n    \"name\": \"user\",\n " +
@@ -405,6 +405,24 @@ class ShareItTests {
                 .when().post(HOST + USERS)
                 .then().log().all()
                 .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    void deleteUser_whenUserExist_thenReturnSuccess() {
+        doDataPreparation_createUser();
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .pathParam("userId", 1)
+                .when().delete(HOST + USERS + "/{userId}")
+                .then().log().all()
+                .statusCode(HttpStatus.OK.value());
+
+        given().log().all()
+                .contentType(ContentType.JSON)
+                .pathParam("userId", 2)
+                .when().get(HOST + USERS + "/{userId}")
+                .then().log().all()
+                .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
     private void doDataPreparation_createUser() {
