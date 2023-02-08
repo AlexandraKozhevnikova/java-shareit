@@ -65,8 +65,8 @@ public class BookingOrderController {
     public List<BookingOrderResponse> getAllOwnerBookingOrders(@RequestHeader(USER_HEADER) Long userId,
                                                                @RequestParam(name = "state", required = false,
                                                                        defaultValue = "ALL") String state,
-                                                               @PositiveOrZero
-                                                               @RequestParam(value = "from", required = false)
+                                                               @Positive
+                                                                   @RequestParam(value = "from", required = false)
                                                                Optional<Integer> from,
                                                                @Positive
                                                                @RequestParam(value = "size", required = false)

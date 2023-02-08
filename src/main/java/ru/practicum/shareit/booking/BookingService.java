@@ -118,7 +118,7 @@ public class BookingService {
         BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(authorId);
 
         return bookingRepository.findAll(byAuthor.and(byStatus),
-                        QPageRequest.of(from.orElse(0), size.orElse(100)).withSort(
+                        QPageRequest.of((from.orElse(1) - 1), size.orElse(100)).withSort(
                                 new QSort(QBookingOrder.bookingOrder.start.desc()))
                 ).stream()
                 .map(bookingMapping::entityToDto)
