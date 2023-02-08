@@ -39,8 +39,9 @@ public class BookingService {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingOrderRepository bookingRepository;
-
     private final JPAQueryFactory jpaQueryFactory;
+    private static final int DEFAULT_FROM = 0;
+    private static final int DEFAULT_SIZE = 100;
 
 
     @Transactional
@@ -105,7 +106,6 @@ public class BookingService {
                 .orElseThrow(() -> new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
     }
 
-
     @Transactional(readOnly = true)
     public List<BookingOrderResponse> getAllAuthorBookingOrder(
             Long authorId,
@@ -118,7 +118,7 @@ public class BookingService {
         BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(authorId);
 
         return bookingRepository.findAll(byAuthor.and(byStatus),
-                        QPageRequest.of((from.orElse(1) - 1), size.orElse(100)).withSort(
+                        QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE)).withSort(
                                 new QSort(QBookingOrder.bookingOrder.start.desc()))
                 ).stream()
                 .map(bookingMapping::entityToDto)
@@ -132,7 +132,7 @@ public class BookingService {
         BooleanExpression byStatus = getFilterByState(state);
         BooleanExpression byOwner = QBookingOrder.bookingOrder.item.owner.id.eq(ownerId);
         return bookingRepository.findAll(byOwner.and(byStatus),
-                        QPageRequest.of(from.orElse(0), size.orElse(100))
+                        QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE))
                                 .withSort(new QSort(QBookingOrder.bookingOrder.start.desc()))
                 ).stream()
                 .map(bookingMapping::entityToDto)
@@ -211,6 +211,4 @@ public class BookingService {
         }
         return order.getAuthor();
     }
-
 }
-

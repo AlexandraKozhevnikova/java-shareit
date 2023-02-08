@@ -65,12 +65,12 @@ public class BookingOrderController {
     public List<BookingOrderResponse> getAllOwnerBookingOrders(@RequestHeader(USER_HEADER) Long userId,
                                                                @RequestParam(name = "state", required = false,
                                                                        defaultValue = "ALL") String state,
-                                                               @Positive
+                                                               @PositiveOrZero
                                                                    @RequestParam(value = "from", required = false)
-                                                               Optional<Integer> from,
+                                                                   Optional<Integer> from,
                                                                @Positive
-                                                               @RequestParam(value = "size", required = false)
-                                                               Optional<Integer> size) {
+                                                                   @RequestParam(value = "size", required = false)
+                                                                   Optional<Integer> size) {
         return bookingService.getAllOwnerBookingOrder(userId, state, from, size);
     }
 }

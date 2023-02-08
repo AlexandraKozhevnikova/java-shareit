@@ -36,7 +36,7 @@ public class ItemRequestControllerUnitTest {
         itemRequestController.getItemRequestById(1L, 4444L);
 
         verify(userService, times(1))
-                .getUserById(1L);
+                .checkUserExist(1L);
         verify(itemRequestService, times(1))
                 .getItemRequestById(4444L);
     }

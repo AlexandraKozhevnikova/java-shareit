@@ -163,7 +163,7 @@ public class ItemRequestControllerTest {
 
         mvc.perform(MockMvcRequestBuilders
                         .get(REQUEST + "/{requestId}", 5555)
-                        .header(USER_HEADER, 1)
+                        .header(USER_HEADER, 1L)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -179,7 +179,7 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("items.[0].requestId").value(5555));
 
         verify(userService, times(1))
-                .getUserById(1L);
+                .checkUserExist(1L);
         verify(itemRequestService, times(1))
                 .getItemRequestById(5555L);
     }
@@ -220,7 +220,7 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("[0].items.[0].requestId").value(5555));
 
         verify(userService, times(1))
-                .getUserById(1L);
+                .checkUserExist(1L);
         verify(itemRequestService, times(1))
                 .getItemRequestByAuthor(1L);
     }

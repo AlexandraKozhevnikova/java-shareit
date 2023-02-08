@@ -37,13 +37,13 @@ public class ItemRequestController {
     @GetMapping("/{requestId}")
     public ItemRequestGetResponse getItemRequestById(@RequestHeader(USER_HEADER) Long userId,
                                                      @PathVariable Long requestId) {
-        userService.getUserById(userId);
+        userService.checkUserExist(userId);
         return itemRequestService.getItemRequestById(requestId);
     }
 
     @GetMapping
     public List<ItemRequestGetResponse> getItemRequestByAuthor(@RequestHeader(USER_HEADER) Long userId) {
-        userService.getUserById(userId);
+        userService.checkUserExist(userId);
         return itemRequestService.getItemRequestByAuthor(userId);
     }
 
@@ -55,7 +55,7 @@ public class ItemRequestController {
                                                                @Positive
                                                                @RequestParam(value = "size", required = false)
                                                                Optional<Integer> size) {
-        userService.getUserById(userId);
+        userService.checkUserExist(userId);
         return itemRequestService.getAllOtherItemRequest(userId, from, size);
     }
 

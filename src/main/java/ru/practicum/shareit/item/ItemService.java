@@ -31,13 +31,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
-
     private ItemRepository itemRepository;
     private CommentRepository commentRepository;
     private UserService userService;
     private BookingService bookingService;
     private ItemMapper itemMapper;
     private ItemRequestService itemRequestService;
+    private static final int DEFAULT_FROM = 1;
+    private static final int DEFAULT_SIZE = 100;
 
     @Autowired
     public ItemService(ItemRepository itemRepository, CommentRepository commentRepository, UserService userService,
@@ -51,7 +52,7 @@ public class ItemService {
         this.itemRequestService = itemRequestService;
     }
 
-    @Transactional()
+    @Transactional
     public Item createItem(Item item, long ownerId) {
         User owner = userService.getUserById(ownerId);
         if (item.getItemRequest() != null) {
@@ -94,7 +95,7 @@ public class ItemService {
     public Page<Item> getOwnersItems(long userId, Optional<Integer> from, Optional<Integer> size) {
         userService.getUserById(userId);
         return itemRepository.findAll(QItem.item.owner.id.eq(userId),
-                PageRequest.of(from.orElse(0), size.orElse(100))
+                PageRequest.of((from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE))
                         .withSort(new QSort(QItem.item.id.asc())));
     }
 
@@ -106,7 +107,7 @@ public class ItemService {
 
         return StringUtils.isBlank(text) ? new PageImpl<Item>(Collections.EMPTY_LIST)
                 : itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains),
-                QPageRequest.of(from.orElse(0), size.orElse(100)));
+                QPageRequest.of((from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE)));
     }
 
     public Item checkItemIsExistInRep(long id) {
@@ -149,5 +150,4 @@ public class ItemService {
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());
     }
-
 }

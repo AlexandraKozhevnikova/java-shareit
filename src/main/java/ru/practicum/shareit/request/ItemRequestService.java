@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
@@ -26,12 +27,14 @@ public class ItemRequestService {
     private ItemRequestMapper itemRequestMapper;
     private UserService userService;
     private ItemService itemService;
+    private static final int DEFAULT_FROM = 1;
+    private static final int DEFAULT_SIZE = 100;
 
     @Transactional
     public ItemRequestCreateResponse createItemRequest(Long authorId, Map<String, String> body) {
         User user = userService.getUserById(authorId);
         String description = Optional.ofNullable(body.get("description"))
-                .filter(it -> !it.isBlank())
+                .filter(StringUtils::isNoneBlank)
                 .orElseThrow(() -> new IllegalArgumentException("'text' must not be blank"));
         ItemRequest request = new ItemRequest();
         request.setAuthor(user);
@@ -67,7 +70,7 @@ public class ItemRequestService {
     @Transactional(readOnly = true)
     public List<ItemRequestGetResponse> getAllOtherItemRequest(Long userId, Optional<Integer> from, Optional<Integer> size) {
         Page<ItemRequest> itemRequests = itemRequestRepository.findAll(QItemRequest.itemRequest.author.id.ne(userId),
-                QPageRequest.of(from.orElse(0), size.orElse(100))
+                QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE))
                         .withSort(new QSort(QItemRequest.itemRequest.created.desc())));
 
         return itemRequests.stream()

@@ -51,8 +51,6 @@ public class ItemControllerTest {
 
     @BeforeEach
     void setUp() {
-
-
         User user = new User();
         user.setId(100L);
 
@@ -181,7 +179,6 @@ public class ItemControllerTest {
                         .value("validation"))
                 .andExpect(jsonPath("$.errorInfo.description")
                         .value("object does not valid"));
-
     }
 
     @Test
@@ -197,4 +194,3 @@ public class ItemControllerTest {
                 .andDo(print());
     }
 }
-
