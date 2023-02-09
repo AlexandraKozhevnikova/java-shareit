@@ -13,6 +13,9 @@ public class DateConsistencyValidator implements ConstraintValidator<DateConsist
 
     @Override
     public boolean isValid(BookingOrderCreateRequest value, ConstraintValidatorContext context) {
-        return value.getStart().isBefore(value.getEnd()) && value.getStart().isAfter(LocalDateTime.now());
+        return value.getStart() != null
+                && value.getEnd() != null
+                && value.getStart().isBefore(value.getEnd())
+                && value.getStart().isAfter(LocalDateTime.now());
     }
 }

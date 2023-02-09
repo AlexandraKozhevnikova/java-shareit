@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -38,9 +37,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getUserById(long id) {
-        Optional<User> user = userRepository.findById(id);
-        return user.orElseThrow(() -> new NoSuchElementException("Пользователя с 'id' = " + id + " не существует"));
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(()
+                -> new NoSuchElementException("Пользователя с 'id' = " + id + " не существует"));
+    }
+
+    public User checkUserExist(Long id) {
+        return getUserById(id);
     }
 
     public void deleteUser(long id) {

@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +25,8 @@ import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
 import static ru.practicum.shareit.booking.model.BookingStatus.REJECTED;
@@ -38,8 +39,9 @@ public class BookingService {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingOrderRepository bookingRepository;
-
     private final JPAQueryFactory jpaQueryFactory;
+    private static final int DEFAULT_FROM = 0;
+    private static final int DEFAULT_SIZE = 100;
 
 
     @Transactional
@@ -55,7 +57,7 @@ public class BookingService {
                     " не доступна для бронирования");
         }
         if (booking.getItem().getOwner().getId().equals(authorId)) {
-            throw new AccessDeniedException("Владелец не может бронировать свои вещи");
+            throw new ItemCanNotBeBookedByOwnerException("Владелец не может бронировать свои вещи");
         }
         booking.setStatus(WAITING);
         BookingOrder savedBooking = bookingRepository.save(booking);
@@ -82,14 +84,13 @@ public class BookingService {
             booking.setStatus(REJECTED);
         }
 
-        BookingOrder savedBooking = bookingRepository.saveAndFlush(booking);
+        BookingOrder savedBooking = bookingRepository.save(booking);
 
         return bookingMapping.entityToDto(savedBooking);
     }
 
-    @SneakyThrows
     @Transactional(readOnly = true)
-    public BookingOrderResponse getBookingOrderWithUserAccess(Long userId, Long bookingId) {
+    public BookingOrderResponse getBookingOrderWithUserAccess(Long userId, Long bookingId) throws AccessDeniedException {
         userService.getUserById(userId);
         BookingOrder booking = getBookingById(bookingId);
 
@@ -101,33 +102,39 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public BookingOrder getBookingById(long bookingId) {
-        return bookingRepository.findById(bookingId).orElseThrow(() ->
-                new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NoSuchElementException("Бронирование с  id = " + bookingId + "   не существует"));
     }
 
-
     @Transactional(readOnly = true)
-    public List<BookingOrderResponse> getAllAuthorBookingOrder(Long authorId, String state) {
+    public List<BookingOrderResponse> getAllAuthorBookingOrder(
+            Long authorId,
+            String state,
+            Optional<Integer> from,
+            Optional<Integer> size) {
         userService.getUserById(authorId);
 
         BooleanExpression byStatus = getFilterByState(state);
         BooleanExpression byAuthor = QBookingOrder.bookingOrder.author.id.eq(authorId);
-        Iterable<BookingOrder> orders = bookingRepository.findAll(byAuthor.and(byStatus),
-                new QSort(QBookingOrder.bookingOrder.start.desc()));
 
-        return StreamSupport.stream(orders.spliterator(), false)
+        return bookingRepository.findAll(byAuthor.and(byStatus),
+                        QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE)).withSort(
+                                new QSort(QBookingOrder.bookingOrder.start.desc()))
+                ).stream()
                 .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }
 
-    public List<BookingOrderResponse> getAllOwnerBookingOrder(Long ownerId, String state) {
+    public List<BookingOrderResponse> getAllOwnerBookingOrder(Long ownerId, String state,
+                                                              Optional<Integer> from,
+                                                              Optional<Integer> size) {
         userService.getUserById(ownerId);
         BooleanExpression byStatus = getFilterByState(state);
         BooleanExpression byOwner = QBookingOrder.bookingOrder.item.owner.id.eq(ownerId);
-        Iterable<BookingOrder> orders = bookingRepository.findAll(byOwner.and(byStatus),
-                new QSort(QBookingOrder.bookingOrder.start.desc()));
-
-        return StreamSupport.stream(orders.spliterator(), false)
+        return bookingRepository.findAll(byOwner.and(byStatus),
+                        QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE))
+                                .withSort(new QSort(QBookingOrder.bookingOrder.start.desc()))
+                ).stream()
                 .map(bookingMapping::entityToDto)
                 .collect(Collectors.toList());
     }
@@ -205,4 +212,3 @@ public class BookingService {
         return order.getAuthor();
     }
 }
-

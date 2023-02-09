@@ -8,7 +8,7 @@ import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import java.util.List;
 
 @Data
-public class GetAllItemsForOwnerResponseDto {
+public class ItemWithOptionalBookingResponseDto {
     private Long id;
     private String name;
     private String description;

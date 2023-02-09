@@ -2,14 +2,16 @@ package ru.practicum.shareit.item.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Data
+@Getter
+@Setter
 public class ItemDto {
-    private Integer id;
+    private Long id;
     @NotBlank(message = "'name' must not be blank")
     private String name;
     @NotBlank(message = "'description' must not be blank")
@@ -17,4 +19,5 @@ public class ItemDto {
     @NotNull(message = "'available' must not be blank")
     @JsonProperty("available")
     private Boolean isAvailable;
+    private Long requestId;
 }

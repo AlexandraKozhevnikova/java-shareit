@@ -14,7 +14,11 @@ import ru.practicum.shareit.booking.dto.BookingOrderCreateRequest;
 import ru.practicum.shareit.booking.dto.BookingOrderResponse;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @AllArgsConstructor
@@ -39,23 +43,34 @@ public class BookingOrderController {
 
     @GetMapping("/{bookingId}")
     public BookingOrderResponse getBookingOrder(@RequestHeader(USER_HEADER) Long userId,
-                                                @PathVariable Long bookingId) {
+                                                @PathVariable Long bookingId) throws AccessDeniedException {
         return bookingService.getBookingOrderWithUserAccess(userId, bookingId);
     }
 
     @GetMapping
     public List<BookingOrderResponse> getAllAuthorBookingOrders(@RequestHeader(USER_HEADER) Long userId,
                                                                 @RequestParam(name = "state", required = false,
-                                                                        defaultValue = "ALL") String state) {
-        return bookingService.getAllAuthorBookingOrder(userId, state);
+                                                                        defaultValue = "ALL")
+                                                                String state,
+                                                                @PositiveOrZero
+                                                                @RequestParam(value = "from", required = false)
+                                                                Optional<Integer> from,
+                                                                @Positive
+                                                                @RequestParam(value = "size", required = false)
+                                                                Optional<Integer> size) {
+        return bookingService.getAllAuthorBookingOrder(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingOrderResponse> getAllOwnerBookingOrders(@RequestHeader(USER_HEADER) Long userId,
                                                                @RequestParam(name = "state", required = false,
-                                                                       defaultValue = "ALL") String state) {
-        return bookingService.getAllOwnerBookingOrder(userId, state);
+                                                                       defaultValue = "ALL") String state,
+                                                               @PositiveOrZero
+                                                                   @RequestParam(value = "from", required = false)
+                                                                   Optional<Integer> from,
+                                                               @Positive
+                                                                   @RequestParam(value = "size", required = false)
+                                                                   Optional<Integer> size) {
+        return bookingService.getAllOwnerBookingOrder(userId, state, from, size);
     }
-
-
 }
