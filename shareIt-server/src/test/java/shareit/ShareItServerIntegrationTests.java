@@ -35,12 +35,11 @@ import static org.hamcrest.Matchers.nullValue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class ShareItServerIntegrationTests {
 
-    private String HOST = "http://localhost:9090";
+    public static final String REQUEST = "/requests";
     private static final String USERS = "/users";
     private static final String ITEM = "/items";
     private static final String BOOKING = "/bookings";
-    public static final String REQUEST = "/requests";
-
+    private String HOST = "http://localhost:9090";
 
     @BeforeAll
     private static void run() {
@@ -147,38 +146,6 @@ class ShareItServerIntegrationTests {
                 .body("[0].name", is("Дрель"))
                 .body("[0].description", is("Простая дрель"))
                 .body("[0].available", is(true));
-    }
-
-    @Test
-    void createItemRequest_whenEmptyBody_then400() {
-        doDataPreparation_createUser();
-
-        given().log().all()
-                .contentType(ContentType.JSON)
-                .body("{ }")
-                .header("X-Sharer-User-Id", 1)
-                .when().post(HOST + REQUEST)
-                .then().log().all()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("error", is("'text' must not be blank"))
-                .body("errorInfo.type", is("validation"));
-    }
-
-    @Test
-    void createItemRequest_whenDescriptionIsNull_then400() {
-        doDataPreparation_createUser();
-
-        given().log().all()
-                .contentType(ContentType.JSON)
-                .body("{\n" +
-                        "    \"description\": null \n" +
-                        "}")
-                .header("X-Sharer-User-Id", 1)
-                .when().post(HOST + REQUEST)
-                .then().log().all()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("error", is("'text' must not be blank"))
-                .body("errorInfo.type", is("validation"));
     }
 
     @Test

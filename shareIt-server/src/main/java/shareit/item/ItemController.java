@@ -30,10 +30,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/items")
 public class ItemController {
 
+    private static final String USER_HEADER = "X-Sharer-User-Id";
     private final ItemMapper itemMapper;
     private final ItemService itemService;
     private final BookingService bookingService;
-    private static final String USER_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
     public ItemDto createItem(@RequestHeader(USER_HEADER) Long ownerId, @RequestBody ItemDto itemDto) {

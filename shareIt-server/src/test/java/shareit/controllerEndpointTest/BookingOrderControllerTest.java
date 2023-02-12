@@ -43,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BookingOrderController.class)
 public class BookingOrderControllerTest {
+    @Autowired
+    private final FormattingConversionService conversionService = new FormattingConversionService();
     @MockBean
     private BookingService bookingService;
     @Autowired
@@ -56,8 +58,6 @@ public class BookingOrderControllerTest {
     private UserDto userDto;
     @Autowired
     private ApplicationContext applicationContext;
-    @Autowired
-    private final FormattingConversionService conversionService = new FormattingConversionService();
     @Autowired
     private ExceptionApiHandler exceptionApiHandler;
 

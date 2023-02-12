@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
+    private static final int DEFAULT_FROM = 1;
+    private static final int DEFAULT_SIZE = 100;
     private ItemRepository itemRepository;
     private CommentRepository commentRepository;
     private UserService userService;
     private BookingService bookingService;
     private ItemMapper itemMapper;
     private ItemRequestService itemRequestService;
-    private static final int DEFAULT_FROM = 1;
-    private static final int DEFAULT_SIZE = 100;
 
     @Autowired
     public ItemService(ItemRepository itemRepository, CommentRepository commentRepository, UserService userService,

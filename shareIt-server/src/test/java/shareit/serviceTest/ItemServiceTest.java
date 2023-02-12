@@ -34,6 +34,10 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ItemServiceTest {
+    User userWithId;
+    Item itemWithId;
+    Item itemWithId2;
+    Item itemWithId3;
     @InjectMocks
     private ItemService itemService;
     @Mock
@@ -46,11 +50,6 @@ public class ItemServiceTest {
     private ItemRequestService itemRequestService;
     @Captor
     private ArgumentCaptor<Item> argumentCaptor;
-
-    User userWithId;
-    Item itemWithId;
-    Item itemWithId2;
-    Item itemWithId3;
 
     @BeforeEach
     void setup() {

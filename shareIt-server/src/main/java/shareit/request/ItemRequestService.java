@@ -1,7 +1,6 @@
 package shareit.request;
 
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
@@ -23,19 +22,17 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class ItemRequestService {
+    private static final int DEFAULT_FROM = 1;
+    private static final int DEFAULT_SIZE = 100;
     private ItemRequestRepository itemRequestRepository;
     private ItemRequestMapper itemRequestMapper;
     private UserService userService;
     private ItemService itemService;
-    private static final int DEFAULT_FROM = 1;
-    private static final int DEFAULT_SIZE = 100;
 
     @Transactional
     public ItemRequestCreateResponse createItemRequest(Long authorId, Map<String, String> body) {
         User user = userService.getUserById(authorId);
-        String description = Optional.ofNullable(body.get("description"))
-                .filter(StringUtils::isNoneBlank)
-                .orElseThrow(() -> new IllegalArgumentException("'text' must not be blank")); //todo
+        String description = body.get("description");
         ItemRequest request = new ItemRequest();
         request.setAuthor(user);
         request.setDescription(description);

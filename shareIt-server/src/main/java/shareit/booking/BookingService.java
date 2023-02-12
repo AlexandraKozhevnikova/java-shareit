@@ -36,14 +36,13 @@ import static shareit.booking.model.BookingStatus.WAITING;
 @Service
 @AllArgsConstructor
 public class BookingService {
+    private static final int DEFAULT_FROM = 0;
+    private static final int DEFAULT_SIZE = 100;
     private final BookingOrderMapping bookingMapping;
     private final UserService userService;
     private final ItemService itemService;
     private final BookingOrderRepository bookingRepository;
     private final JPAQueryFactory jpaQueryFactory;
-    private static final int DEFAULT_FROM = 0;
-    private static final int DEFAULT_SIZE = 100;
-
 
     @Transactional
     @SneakyThrows

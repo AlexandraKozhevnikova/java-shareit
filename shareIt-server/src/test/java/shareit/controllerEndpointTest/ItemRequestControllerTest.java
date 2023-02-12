@@ -39,15 +39,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ItemRequestController.class)
 public class ItemRequestControllerTest {
+    public static final String REQUEST = "/requests";
+    private static final String USER_HEADER = "X-Sharer-User-Id";
     @MockBean
     private ItemRequestService itemRequestService;
     @MockBean
     private UserService userService;
     @Autowired
     private MockMvc mvc;
-    public static final String REQUEST = "/requests";
-    private static final String USER_HEADER = "X-Sharer-User-Id";
-
 
     @Test
     void createItemRequest_whenWithoutUserHeader_then400MissingRequestHeaderException() throws Exception {
