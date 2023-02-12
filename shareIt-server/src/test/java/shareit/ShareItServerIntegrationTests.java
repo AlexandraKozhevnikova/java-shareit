@@ -39,7 +39,7 @@ class ShareItServerIntegrationTests {
     private static final String USERS = "/users";
     private static final String ITEM = "/items";
     private static final String BOOKING = "/bookings";
-    private String HOST = "http://localhost:9090";
+    private static final String HOST = "http://localhost:9090";
 
     @BeforeAll
     private static void run() {

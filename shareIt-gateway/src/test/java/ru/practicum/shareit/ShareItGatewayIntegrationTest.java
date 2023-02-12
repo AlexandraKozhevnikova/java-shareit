@@ -22,7 +22,7 @@ public class ShareItGatewayIntegrationTest {
     private static final String USERS = "/users";
     private static final String ITEMS = "/items";
     private static final String REQUEST = "/requests";
-    private String HOST = "http://localhost:8080";
+    private static final String HOST = "http://localhost:8080";
 
     @BeforeAll
     private static void run() {
