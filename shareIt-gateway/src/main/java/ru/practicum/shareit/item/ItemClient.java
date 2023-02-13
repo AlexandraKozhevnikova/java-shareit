@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.BaseClient;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -61,6 +63,10 @@ public class ItemClient extends BaseClient {
 
 
     public ResponseEntity<Object> searchItem(Long userId, String text, Optional<Integer> from, Optional<Integer> size) {
+        if (StringUtils.isBlank(text)) {
+            return new ResponseEntity<>(Collections.EMPTY_LIST, HttpStatus.OK);
+        }
+
         Map<String, Object> param = new HashMap<>(
                 Map.of("text", text)
         );

@@ -18,7 +18,6 @@ import shareit.item.dto.ItemWithOptionalBookingResponseDto;
 import shareit.item.model.Comment;
 import shareit.item.model.Item;
 
-import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,7 +85,6 @@ public class ItemController {
                                     @RequestHeader(USER_HEADER) Long userId,
                                     @RequestParam(value = "from", required = false)
                                     Optional<Integer> from,
-                                    @Positive
                                     @RequestParam(value = "size", required = false)
                                     Optional<Integer> size) {
         return itemService.findAllWithText(text, from, size).stream()

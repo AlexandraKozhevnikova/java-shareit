@@ -97,23 +97,6 @@ public class ExceptionApiHandler {
                 );
     }
 
-
-//    @ExceptionHandler(NoSuchElementException.class)
-//    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
-//        log.error(e.getMessage(), e);
-//        return ResponseEntity
-//                .status(HttpStatus.NOT_FOUND)
-//                .body(ErrorResponse.builder()
-//                        .error(e.getLocalizedMessage())
-//                        .errorInfo(ApiError.builder()
-//                                .type("logic")
-//                                .description("object does not found")
-//                                .build()
-//                        ).build()
-//                );
-//    }
-
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error(e.getMessage(), e);

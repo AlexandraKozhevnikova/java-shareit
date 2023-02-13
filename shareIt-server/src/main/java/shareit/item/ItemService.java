@@ -1,11 +1,9 @@
 package shareit.item;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
@@ -23,7 +21,6 @@ import shareit.request.ItemRequestService;
 import shareit.user.User;
 import shareit.user.UserService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -105,8 +102,7 @@ public class ItemService {
         BooleanExpression titleContains = QItem.item.title.containsIgnoreCase(text);
         BooleanExpression descriptionContains = QItem.item.description.containsIgnoreCase(text);
 
-        return StringUtils.isBlank(text) ? new PageImpl<Item>(Collections.EMPTY_LIST)
-                : itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains),
+        return itemRepository.findAll(isAvailable.andAnyOf(descriptionContains, titleContains),
                 QPageRequest.of((from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE)));
     }
 

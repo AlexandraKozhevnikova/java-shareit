@@ -23,30 +23,6 @@ import java.util.stream.Collectors;
 public class ExceptionApiHandler {
     private static final Logger log = LogManager.getLogger(ExceptionApiHandler.class);
 
-
-//    @ExceptionHandler(ConstraintViolationException.class)
-//    public ResponseEntity<List<ErrorResponse>> handleConstraintViolationException(
-//            final ConstraintViolationException e) {
-//        log.error(e.getMessage(), e);
-//        List<String> listError = e.getConstraintViolations().stream()
-//                .map(ConstraintViolation::getMessage)
-//                .collect(Collectors.toList());
-//        return ResponseEntity
-//                .status(HttpStatus.BAD_REQUEST)
-//                .body(
-//                        listError.stream()
-//                                .map(it -> ErrorResponse.builder()
-//                                        .error(it)
-//                                        .errorInfo(ApiError.builder()
-//                                                .type("validation")
-//                                                .description("value is not valid")
-//                                                .build()
-//                                        ).build()
-//                                )
-//                                .collect(Collectors.toList())
-//                );
-//    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ErrorResponse>> handleValidationException(MethodArgumentNotValidException e) {
         List<String> listError = e.getBindingResult().getFieldErrors().stream()
