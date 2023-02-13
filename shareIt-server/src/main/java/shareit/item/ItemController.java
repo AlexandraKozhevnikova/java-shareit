@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shareit.booking.BookingService;
+import shareit.booking.dto.BookingInfoDto;
 import shareit.item.dto.CommentDto;
 import shareit.item.dto.ItemDto;
 import shareit.item.dto.ItemMapper;
@@ -55,8 +56,16 @@ public class ItemController {
         Item item = itemService.getItemWithUserAccess(itemId, userId);
         ItemWithOptionalBookingResponseDto response = itemMapper.itemToDtoWithBookingInfo(item);
         if (userId.equals(item.getOwner().getId())) {
-            response.setNextBooking(bookingService.getNextBookingForItem(item.getId(), userId));
-            response.setLastBooking(bookingService.getLastBookingForItem(item.getId(), userId));
+            bookingService.getNextBookingForItems(List.of(item.getId()))
+                    .stream()
+                    .findFirst()
+                    .ifPresent(next -> response.setNextBooking(new BookingInfoDto(next.getId(), next.getAuthor()
+                            .getId())));
+            bookingService.getLastBookingForItems(List.of(item.getId()))
+                    .stream()
+                    .findFirst()
+                    .ifPresent(next -> response.setLastBooking(new BookingInfoDto(next.getId(), next.getAuthor()
+                            .getId())));
         }
 
         List<Comment> comments = itemService.getComment(itemId);
@@ -72,12 +81,9 @@ public class ItemController {
                                                                    Optional<Integer> from,
                                                                    @RequestParam(value = "size", required = false)
                                                                    Optional<Integer> size) {
-        return itemService.getOwnersItems(userId, from, size).stream()
-                .map(itemMapper::itemToDtoWithBookingInfo)
-                .peek(it -> {
-                    it.setLastBooking(bookingService.getLastBookingForItem(it.getId(), userId));
-                    it.setNextBooking(bookingService.getNextBookingForItem(it.getId(), userId));
-                }).collect(Collectors.toList());
+
+
+        return itemService.getOwnersItems(userId, from, size);
     }
 
     @GetMapping("/search")

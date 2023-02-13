@@ -3,13 +3,11 @@ package shareit.booking;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shareit.booking.dto.BookingInfoDto;
 import shareit.booking.dto.BookingOrderCreateRequest;
 import shareit.booking.dto.BookingOrderMapping;
 import shareit.booking.dto.BookingOrderResponse;
@@ -34,7 +32,6 @@ import static shareit.booking.model.BookingStatus.WAITING;
 
 
 @Service
-@AllArgsConstructor
 public class BookingService {
     private static final int DEFAULT_FROM = 0;
     private static final int DEFAULT_SIZE = 100;
@@ -43,6 +40,16 @@ public class BookingService {
     private final ItemService itemService;
     private final BookingOrderRepository bookingRepository;
     private final JPAQueryFactory jpaQueryFactory;
+
+    public BookingService(BookingOrderMapping bookingMapping, UserService userService, ItemService itemService,
+                          BookingOrderRepository bookingRepository, JPAQueryFactory jpaQueryFactory) {
+        this.bookingMapping = bookingMapping;
+        this.userService = userService;
+        this.itemService = itemService;
+        this.bookingRepository = bookingRepository;
+        this.jpaQueryFactory = jpaQueryFactory;
+    }
+
 
     @Transactional
     @SneakyThrows
@@ -139,32 +146,19 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    public BookingInfoDto getNextBookingForItem(Long itemId, Long authorId) {
-        BookingOrder order = jpaQueryFactory
-                .selectFrom(QBookingOrder.bookingOrder)
-                .where(QBookingOrder.bookingOrder.bookingStatusDbCode
-                        .eq(APPROVED.getDbCode()))
-                .where(QBookingOrder.bookingOrder.item.id
-                        .eq(itemId))
-                .where(QBookingOrder.bookingOrder.start
-                        .after(LocalDateTime.now()))
-                .orderBy(QBookingOrder.bookingOrder.start.asc())
-                .fetchFirst();
-        return order == null ? null : new BookingInfoDto(order.getId(), order.getAuthor().getId());
+    public List<BookingOrder> getNextBookingForItems(List<Long> items) {
+
+        List<Long> ids = bookingRepository.getNextBookingForItem(items);
+
+        return (List<BookingOrder>) bookingRepository.findAll(
+                QBookingOrder.bookingOrder.id.in(ids));
     }
 
-    public BookingInfoDto getLastBookingForItem(Long itemId, Long authorId) {
-        BookingOrder order = jpaQueryFactory
-                .selectFrom(QBookingOrder.bookingOrder)
-                .where(QBookingOrder.bookingOrder.bookingStatusDbCode
-                        .eq(APPROVED.getDbCode()))
-                .where(QBookingOrder.bookingOrder.item.id
-                        .eq(itemId))
-                .where(QBookingOrder.bookingOrder.start
-                        .before(LocalDateTime.now()))
-                .orderBy(QBookingOrder.bookingOrder.start.desc())
-                .fetchFirst();
-        return order == null ? null : new BookingInfoDto(order.getId(), order.getAuthor().getId());
+    public List<BookingOrder> getLastBookingForItems(List<Long> items) {
+        List<Long> ids = bookingRepository.getLastBookingForItem(items);
+
+        return (List<BookingOrder>) bookingRepository.findAll(
+                QBookingOrder.bookingOrder.id.in(ids));
     }
 
     private BooleanExpression getFilterByState(String state) {

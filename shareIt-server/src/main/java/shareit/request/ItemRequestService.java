@@ -7,6 +7,7 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shareit.item.ItemService;
+import shareit.item.dto.ItemDto;
 import shareit.request.dto.ItemRequestCreateResponse;
 import shareit.request.dto.ItemRequestGetResponse;
 import shareit.request.dto.ItemRequestMapper;
@@ -58,21 +59,35 @@ public class ItemRequestService {
     public List<ItemRequestGetResponse> getItemRequestByAuthor(Long userId) {
         List<ItemRequest> itemRequests = (List<ItemRequest>) itemRequestRepository.findAll(
                 QItemRequest.itemRequest.author.id.eq(userId), new QSort(QItemRequest.itemRequest.created.desc()));
+
+        List<ItemDto> items = itemService.getItemsByItemRequestIds(itemRequests);
+
         return itemRequests.stream()
                 .map(itemRequestMapper::entityToGetDto)
-                .peek(it -> it.setItemOfferDtoList(itemService.getItemsByRequestId(it.getId())))
+                .peek(itemRequestGetResponse -> itemRequestGetResponse.setItemOfferDtoList(
+                        items.stream()
+                                .filter(itemDto -> itemDto.getRequestId().equals(itemRequestGetResponse.getId()))
+                                .collect(Collectors.toList())
+                ))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<ItemRequestGetResponse> getAllOtherItemRequest(Long userId, Optional<Integer> from, Optional<Integer> size) {
-        Page<ItemRequest> itemRequests = itemRequestRepository.findAll(QItemRequest.itemRequest.author.id.ne(userId),
+        Page<ItemRequest> itemRequests = itemRequestRepository.findAll(
+                QItemRequest.itemRequest.author.id.ne(userId),
                 QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE))
                         .withSort(new QSort(QItemRequest.itemRequest.created.desc())));
 
+        List<ItemDto> items = itemService.getItemsByItemRequestIds(itemRequests.toList());
+
         return itemRequests.stream()
                 .map(itemRequestMapper::entityToGetDto)
-                .peek(it -> it.setItemOfferDtoList(itemService.getItemsByRequestId(it.getId())))
+                .peek(itemRequestGetResponse -> itemRequestGetResponse.setItemOfferDtoList(
+                        items.stream()
+                                .filter(itemDto -> itemDto.getRequestId().equals(itemRequestGetResponse.getId()))
+                                .collect(Collectors.toList())
+                ))
                 .collect(Collectors.toList());
     }
 }

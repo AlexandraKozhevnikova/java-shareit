@@ -10,8 +10,11 @@ import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shareit.booking.BookingService;
+import shareit.booking.dto.BookingInfoDto;
+import shareit.booking.model.BookingOrder;
 import shareit.item.dto.ItemDto;
 import shareit.item.dto.ItemMapper;
+import shareit.item.dto.ItemWithOptionalBookingResponseDto;
 import shareit.item.model.Comment;
 import shareit.item.model.Item;
 import shareit.item.model.QComment;
@@ -25,6 +28,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class ItemService {
@@ -89,11 +94,35 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Item> getOwnersItems(long userId, Optional<Integer> from, Optional<Integer> size) {
-        userService.getUserById(userId);
-        return itemRepository.findAll(QItem.item.owner.id.eq(userId),
-                PageRequest.of((from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE))
-                        .withSort(new QSort(QItem.item.id.asc())));
+    public List<ItemWithOptionalBookingResponseDto> getOwnersItems(long userId, Optional<Integer> from, Optional<Integer> size) {
+        userService.checkUserExist(userId);
+
+        Page<Item> items = itemRepository.findAll(
+                QItem.item.owner.id.eq(userId),
+                PageRequest.of(
+                        (from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE)
+                ).withSort(new QSort(QItem.item.id.asc())));
+
+        List<BookingOrder> lasts = bookingService.getLastBookingForItems(items.map(Item::getId).toList());
+        List<BookingOrder> nexts = bookingService.getNextBookingForItems(items.map(Item::getId).toList());
+
+        return items.stream()
+                .map(itemMapper::itemToDtoWithBookingInfo)
+                .peek(itemDto -> {
+                            itemDto.setLastBooking(
+                                    lasts.stream()
+                                            .filter(booking -> booking.getItem().getId().equals(itemDto.getId()))
+                                            .map(booking -> new BookingInfoDto(booking.getId(),
+                                                    booking.getAuthor().getId()))
+                                            .findFirst().orElse(null));
+                            itemDto.setNextBooking(
+                                    nexts.stream()
+                                            .filter(booking -> booking.getItem().getId().equals(itemDto.getId()))
+                                            .map(booking -> new BookingInfoDto(booking.getId(),
+                                                    booking.getAuthor().getId()))
+                                            .findFirst().orElse(null));
+                        }
+                ).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -139,6 +168,14 @@ public class ItemService {
     public List<ItemDto> getItemsByRequestId(Long requestId) {
         List<Item> items = (List<Item>) itemRepository.findAll(QItem.item.itemRequest.id.eq(requestId),
                 new QSort(QItem.item.itemRequest.created.desc()));
+        return items.stream()
+                .map(itemMapper::itemToDto)
+                .collect(toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemDto> getItemsByItemRequestIds(List<ItemRequest> itemRequests) {
+        List<Item> items = (List<Item>) itemRepository.findAll(QItem.item.itemRequest.in(itemRequests));
         return items.stream()
                 .map(itemMapper::itemToDto)
                 .collect(Collectors.toList());

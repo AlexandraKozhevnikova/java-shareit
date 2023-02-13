@@ -29,7 +29,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -154,11 +153,6 @@ public class ItemControllerTest {
 
         verify(itemService, times(1))
                 .getItemWithUserAccess(1L, 2L);
-        verify(bookingService, never())
-                .getNextBookingForItem(anyLong(), anyLong());
-        verify(bookingService, never())
-                .getLastBookingForItem(anyLong(), anyLong());
-
     }
 
     @Test
