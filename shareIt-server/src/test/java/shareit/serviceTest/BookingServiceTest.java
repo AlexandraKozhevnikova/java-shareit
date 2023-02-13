@@ -202,18 +202,12 @@ public class BookingServiceTest {
         doReturn(Optional.of(bookingOrder))
                 .when(bookingRepository).findById(anyLong());
 
-        doReturn(bookingOrder)
-                .when(bookingRepository).save(any(BookingOrder.class));
-
         BookingOrderResponse response = bookingService.reactBookingOrder(1L, 333L, false);
 
         verify(bookingRepository, times(1))
                 .findById(333L);
 
-        verify(bookingRepository).save(argumentCaptor.capture());
-        BookingOrder savedBooking = argumentCaptor.getValue();
-
-        assertEquals(BookingStatus.REJECTED, savedBooking.getStatus());
+        assertEquals(BookingStatus.REJECTED, response.getStatus());
         assertEquals(2L, response.getAuthor().getId());
         assertEquals(333L, response.getId());
         assertEquals(LocalDateTime.parse("2040-01-31T19:53:19.363093"), response.getStart());

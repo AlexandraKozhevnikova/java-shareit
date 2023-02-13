@@ -22,15 +22,15 @@ public class UserService {
     public User updateUser(User updateProperty) {
         User savedUser = getUserById(updateProperty.getId());
 
-        if (updateProperty.getEmail() != null && !updateProperty.getEmail().equals(savedUser.getEmail())) {
+        if (updateProperty.getEmail() != null) {
             savedUser.setEmail(updateProperty.getEmail());
         }
 
-        if (updateProperty.getName() != null && !updateProperty.getName().equals(savedUser.getName())) {
+        if (updateProperty.getName() != null) {
             savedUser.setName((updateProperty.getName()));
         }
 
-        return userRepository.save(savedUser);
+        return savedUser;
     }
 
     public List<User> getAllUsers() {

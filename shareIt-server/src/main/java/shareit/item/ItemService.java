@@ -72,19 +72,17 @@ public class ItemService {
 
         Item itemFromRep = checkItemBelongUser(updatedData);
 
-        if (updatedData.getTitle() != null && !updatedData.getTitle().equals(itemFromRep.getTitle())) {
+        if (updatedData.getTitle() != null) {
             itemFromRep.setTitle(updatedData.getTitle());
         }
-        if (updatedData.getDescription() != null && !updatedData.getDescription()
-                .equals(itemFromRep.getDescription())) {
+        if (updatedData.getDescription() != null) {
             itemFromRep.setDescription(updatedData.getDescription());
         }
-        if (updatedData.getIsAvailable() != null && !updatedData.getIsAvailable()
-                .equals(itemFromRep.getIsAvailable())) {
+        if (updatedData.getIsAvailable() != null) {
             itemFromRep.setIsAvailable(updatedData.getIsAvailable());
         }
 
-        return itemRepository.save(itemFromRep);
+        return itemFromRep;
     }
 
     @Transactional(readOnly = true)

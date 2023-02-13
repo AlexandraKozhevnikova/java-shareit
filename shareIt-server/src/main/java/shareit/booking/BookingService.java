@@ -91,9 +91,7 @@ public class BookingService {
             booking.setStatus(REJECTED);
         }
 
-        BookingOrder savedBooking = bookingRepository.save(booking);
-
-        return bookingMapping.entityToDto(savedBooking);
+        return bookingMapping.entityToDto(booking);
     }
 
     @Transactional(readOnly = true)

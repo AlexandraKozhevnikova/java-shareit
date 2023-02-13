@@ -33,7 +33,7 @@ public class ItemRequest {
     @Column(name = "description")
     private String description;
     @JoinColumn(name = "author_id")
-    @ManyToOne
+    @ManyToOne(optional = false)
     private User author;
     @Column(name = "created")
     @CreationTimestamp

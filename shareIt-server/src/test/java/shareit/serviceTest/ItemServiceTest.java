@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -84,8 +83,6 @@ public class ItemServiceTest {
                 .when(userService).getUserById(anyLong());
         doReturn(Optional.of(itemWithId))
                 .when(itemRepository).findById(anyLong());
-        doReturn(itemWithId)
-                .when(itemRepository).save(any(Item.class));
 
         Item updatedItem = itemService.updateItem(itemWithId2, 6L);
 
@@ -101,8 +98,6 @@ public class ItemServiceTest {
                 .when(userService).getUserById(anyLong());
         doReturn(Optional.of(itemWithId))
                 .when(itemRepository).findById(anyLong());
-        doReturn(itemWithId)
-                .when(itemRepository).save(any(Item.class));
 
         Item updatedItem = itemService.updateItem(itemWithId3, 6L);
 
@@ -120,8 +115,6 @@ public class ItemServiceTest {
                 .when(userService).getUserById(anyLong());
         doReturn(Optional.of(itemWithId))
                 .when(itemRepository).findById(anyLong());
-        doReturn(itemWithId)
-                .when(itemRepository).save(any(Item.class));
 
         Item updatedItem = itemService.updateItem(itemEmpty, 6L);
 

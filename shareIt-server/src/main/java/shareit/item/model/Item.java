@@ -28,7 +28,7 @@ public class Item {
     private String title;
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "owner_id")
     private User owner;
     @Column(name = "is_available", nullable = false)

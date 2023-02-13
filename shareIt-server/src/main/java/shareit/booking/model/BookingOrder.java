@@ -30,10 +30,10 @@ public class BookingOrder {
     @Column(name = "id")
     private long id;
     @JoinColumn(name = "user_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(optional = false)
     private User author;
     @JoinColumn(name = "item_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Item item;
     @Column(name = "status")
     private int bookingStatusDbCode;

@@ -80,16 +80,10 @@ public class UserServiceTest {
         updateProperty.setId(6L);
         updateProperty.setItems(Set.of(new Item()));
 
-        when(userRepository.save(any()))
-                .thenReturn(updateProperty);
-
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(oldUser));
 
-        userService.updateUser(updateProperty);
-
-        verify(userRepository).save(argumentCaptor.capture());
-        User savedUser = argumentCaptor.getValue();
+        User savedUser = userService.updateUser(updateProperty);
 
         assertEquals(oldUser.getId(), savedUser.getId());
         assertEquals(updateProperty.getName(), savedUser.getName());
@@ -108,16 +102,10 @@ public class UserServiceTest {
         updateProperty.setEmail("ol@ya.ru");
         updateProperty.setId(1L);
 
-        when(userRepository.save(any()))
-                .thenReturn(updateProperty);
-
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(oldUser));
 
-        userService.updateUser(updateProperty);
-
-        verify(userRepository).save(argumentCaptor.capture());
-        User savedUser = argumentCaptor.getValue();
+        User savedUser = userService.updateUser(updateProperty);
 
         assertEquals(oldUser.getId(), savedUser.getId());
         assertEquals(oldUser.getName(), savedUser.getName());
@@ -136,16 +124,10 @@ public class UserServiceTest {
         updateProperty.setName("Diana");
         updateProperty.setId(1L);
 
-        when(userRepository.save(any()))
-                .thenReturn(updateProperty);
-
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(oldUser));
 
-        userService.updateUser(updateProperty);
-
-        verify(userRepository).save(argumentCaptor.capture());
-        User savedUser = argumentCaptor.getValue();
+        User savedUser = userService.updateUser(updateProperty);
 
         assertEquals(oldUser.getId(), savedUser.getId());
         assertEquals(updateProperty.getName(), savedUser.getName());
@@ -165,16 +147,10 @@ public class UserServiceTest {
         updateProperty.setEmail("sa@ya.ru");
         updateProperty.setId(1L);
 
-        when(userRepository.save(any()))
-                .thenReturn(updateProperty);
-
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(oldUser));
 
-        userService.updateUser(updateProperty);
-
-        verify(userRepository).save(argumentCaptor.capture());
-        User savedUser = argumentCaptor.getValue();
+        User savedUser = userService.updateUser(updateProperty);
 
         assertEquals(oldUser.getId(), savedUser.getId());
         assertEquals(oldUser.getName(), savedUser.getName());

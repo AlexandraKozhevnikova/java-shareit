@@ -29,10 +29,10 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @JoinColumn(name = "user_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(optional = false)
     private User user;
     @JoinColumn(name = "item_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Item item;
     @Column(name = "note", columnDefinition = "TEXT", nullable = false)
     private String text;
