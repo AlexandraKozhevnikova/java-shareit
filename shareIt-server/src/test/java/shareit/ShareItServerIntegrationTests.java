@@ -86,7 +86,7 @@ class ShareItServerIntegrationTests {
         doDataPreparation_createBooking(2L, 1L, LocalDateTime.now().plusSeconds(1L));
         doDataPreparation_createBooking(2L, 1L, LocalDateTime.parse("2040-01-31T19:53:19.363093"));
 
-        Thread.sleep(3000L); //чтобы бронирование стало прошедшим
+        Thread.sleep(3000L);  //чтобы бронирование стало прошедшим
         doDataPreparation_createComment(2);
 
         given().log().all()
