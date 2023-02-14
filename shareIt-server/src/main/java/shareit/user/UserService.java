@@ -2,11 +2,13 @@ package shareit.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
 
@@ -15,10 +17,12 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public User createUser(User user) {
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUser(User updateProperty) {
         User savedUser = getUserById(updateProperty.getId());
 
@@ -46,6 +50,7 @@ public class UserService {
         return getUserById(id);
     }
 
+    @Transactional
     public void deleteUser(long id) {
         userRepository.deleteById(id);
     }
