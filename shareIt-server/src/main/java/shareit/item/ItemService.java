@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shareit.booking.BookingService;
 import shareit.booking.dto.BookingInfoDto;
-import shareit.booking.model.BookingOrder;
 import shareit.item.dto.ItemDto;
 import shareit.item.dto.ItemMapper;
 import shareit.item.dto.ItemWithOptionalBookingResponseDto;
@@ -25,6 +24,7 @@ import shareit.user.User;
 import shareit.user.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -101,24 +101,25 @@ public class ItemService {
                         (from.orElse(DEFAULT_FROM) - 1), size.orElse(DEFAULT_SIZE)
                 ).withSort(new QSort(QItem.item.id.asc())));
 
-        List<BookingOrder> lasts = bookingService.getLastBookingForItems(items.map(Item::getId).toList());
-        List<BookingOrder> nexts = bookingService.getNextBookingForItems(items.map(Item::getId).toList());
+        Map<Long, BookingInfoDto> lasts = bookingService.getLastBookingForItems(items.map(Item::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(
+                        order -> order.getItem().getId(),
+                        order -> new BookingInfoDto(order.getId(), order.getAuthor().getId()))
+                );
+
+        Map<Long, BookingInfoDto> nexts = bookingService.getNextBookingForItems(items.map(Item::getId).toList())
+                .stream()
+                .collect(Collectors.toMap(
+                        order -> order.getItem().getId(),
+                        order -> new BookingInfoDto(order.getId(), order.getAuthor().getId()))
+                );
 
         return items.stream()
                 .map(itemMapper::itemToDtoWithBookingInfo)
                 .peek(itemDto -> {
-                            itemDto.setLastBooking(
-                                    lasts.stream()
-                                            .filter(booking -> booking.getItem().getId().equals(itemDto.getId()))
-                                            .map(booking -> new BookingInfoDto(booking.getId(),
-                                                    booking.getAuthor().getId()))
-                                            .findFirst().orElse(null));
-                            itemDto.setNextBooking(
-                                    nexts.stream()
-                                            .filter(booking -> booking.getItem().getId().equals(itemDto.getId()))
-                                            .map(booking -> new BookingInfoDto(booking.getId(),
-                                                    booking.getAuthor().getId()))
-                                            .findFirst().orElse(null));
+                            itemDto.setLastBooking(lasts.get(itemDto.getId()));
+                            itemDto.setNextBooking(nexts.get(itemDto.getId()));
                         }
                 ).collect(Collectors.toList());
     }

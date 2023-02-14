@@ -14,11 +14,14 @@ import shareit.request.dto.ItemRequestMapper;
 import shareit.user.User;
 import shareit.user.UserService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @AllArgsConstructor
@@ -60,16 +63,13 @@ public class ItemRequestService {
         List<ItemRequest> itemRequests = (List<ItemRequest>) itemRequestRepository.findAll(
                 QItemRequest.itemRequest.author.id.eq(userId), new QSort(QItemRequest.itemRequest.created.desc()));
 
-        List<ItemDto> items = itemService.getItemsByItemRequestIds(itemRequests);
+        Map<Long, List<ItemDto>> items = getItemsByItemRequestIds(itemRequests);
 
         return itemRequests.stream()
                 .map(itemRequestMapper::entityToGetDto)
                 .peek(itemRequestGetResponse -> itemRequestGetResponse.setItemOfferDtoList(
-                        items.stream()
-                                .filter(itemDto -> itemDto.getRequestId().equals(itemRequestGetResponse.getId()))
-                                .collect(Collectors.toList())
-                ))
-                .collect(Collectors.toList());
+                        items.getOrDefault(itemRequestGetResponse.getId(), Collections.emptyList())
+                )).collect(toList());
     }
 
     @Transactional(readOnly = true)
@@ -79,16 +79,19 @@ public class ItemRequestService {
                 QPageRequest.of(from.orElse(DEFAULT_FROM), size.orElse(DEFAULT_SIZE))
                         .withSort(new QSort(QItemRequest.itemRequest.created.desc())));
 
-        List<ItemDto> items = itemService.getItemsByItemRequestIds(itemRequests.toList());
+        Map<Long, List<ItemDto>> items = getItemsByItemRequestIds(itemRequests.toList());
 
         return itemRequests.stream()
                 .map(itemRequestMapper::entityToGetDto)
                 .peek(itemRequestGetResponse -> itemRequestGetResponse.setItemOfferDtoList(
-                        items.stream()
-                                .filter(itemDto -> itemDto.getRequestId().equals(itemRequestGetResponse.getId()))
-                                .collect(Collectors.toList())
+                        items.getOrDefault(itemRequestGetResponse.getId(), Collections.emptyList())
                 ))
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+    private Map<Long, List<ItemDto>> getItemsByItemRequestIds(List<ItemRequest> itemRequests) {
+        return itemService.getItemsByItemRequestIds(itemRequests)
+                .stream().collect(groupingBy(ItemDto::getRequestId, toList()));
     }
 }
 
